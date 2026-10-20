@@ -1,0 +1,1151 @@
+@import url('hero-title-patch.css');
+
+/* 艶のある深い漆黒 ＆ 既存の青・オレンジと完璧に種類が一致する本物のサイバーネオン筐体デザイン */
+body, .main-container {
+  background: #030303 !important; /* 艶のあるディープブラック */
+  
+  /* 外枠のぱっつりした線を無くし、画面の左右に本物のネオン管の光彩をドッキング */
+  border-left: 4px solid #39ff14 !important; /* 左側は鮮烈なネオンライム管 */
+  border-right: 4px solid #ffd700 !important; /* 右側は鮮烈なネオンゴールド管 */
+  
+  /* 既存のSEボタン（青い光）と同じ種類・質感の、内側の黒へじわ〜っと贅沢に溶け込んでいく超広角グラデーション発光 */
+  box-shadow: 
+    /* 左側ライムネオンの溶け込み（内側へ160px以上広く滑らかにブレンド） */
+    inset 160px 0 120px -30px rgba(57, 255, 20, 0.25),
+    inset 40px 0 30px 0 rgba(57, 255, 20, 0.4),
+    /* 右側ゴールドネオンの溶け込み（内側へ160px以上広く滑らかにブレンド） */
+    inset -160px 0 120px -30px rgba(255, 215, 0, 0.2),
+    inset -40px 0 30px 0 rgba(255, 215, 0, 0.35),
+    /* 外側への柔らかい空気感のあるネオン発光 */
+    0 0 40px rgba(57, 255, 20, 0.3),
+    0 0 40px rgba(255, 215, 0, 0.2) !important;
+}
+
+/* 文字が書いてあるセクションやカードの背景を、すべて艶のある漆黒へ統一 */
+.section, .card, .menu-button, .hero-section, .content-block, .banner-container {
+  background: #000000 !important;
+  border: 1px solid rgba(57, 255, 20, 0.15) !important; /* 枠線もネオンの種類を統一 */
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.1) !important;
+}
+
+/* 文字自体の色やくっきり感を最優先で維持 */
+p, span, h1, h2, h3, div, a {
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ==========================================================================
+   最上部固定メインメニューバー（01〜06）スマホ常時完全固定＆レスポンシブ化
+   ========================================================================== */
+
+/* 最上部固定ヘッダー本体（PC・タブレット・スマホ全環境で最上部にガチッと完全固定追従） */
+.site-header {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-width: 100vw !important;
+  height: auto !important;
+  min-height: var(--header-height, 84px) !important;
+  padding: 6px 0 0px 0 !important;
+  background: rgba(3, 3, 3, 0.95) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid rgba(0, 242, 254, 0.25) !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  z-index: 99999 !important; /* ヒーローエリア等に絶対に引っ張られない最前面完全固定 */
+  transform: none !important; /* スクロール追従を阻害するGSAP等のインラインtransformを完全無効化 */
+  margin: 0 !important;
+}
+
+.header-inner {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  max-width: var(--container-max-width, 1600px) !important;
+  height: auto !important;
+  min-height: calc(var(--header-height, 84px) - 12px) !important;
+  margin: 0 auto !important;
+  padding: 4px clamp(8px, 2.5vw, 40px) !important;
+  gap: 6px 10px !important;
+  box-sizing: border-box !important;
+}
+
+/* メニューバー親要素（.site-nav / .nav-list）：中央寄せ・均等折り返し */
+.site-nav, .header-menu-container, .nav-menu {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+
+.nav-list {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 4px !important; /* 指示通りの最適な折り返しギャップ */
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  list-style: none !important;
+}
+
+.nav-list li {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 1 auto !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 長文ボタン（02ワンコーラス、03サビだけ演奏等）幅制限リセット＆2段・3段自動改行セーフティガード */
+.nav-link, .menu-item, .nav-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 1 1 auto !important;
+  max-width: 100% !important;
+  width: auto !important;
+  min-width: 0 !important;
+  gap: 4px !important;
+  
+  /* 【幅制限リセット＆自動改行】ボタンの内側で文字が2段・3段に綺麗に自動改行され横はみ出し完全消滅 */
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  line-break: anywhere !important;
+  text-align: center !important;
+  line-height: 1.25 !important;
+  
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  padding: 4px 10px !important;
+  border-radius: 9999px !important;
+  background: rgba(0, 242, 254, 0.09) !important;
+  border: 1px solid rgba(0, 242, 254, 0.5) !important;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.4), inset 0 0 6px rgba(0, 242, 254, 0.15) !important;
+  color: #00f2fe !important;
+  text-shadow: 0 0 8px #00f2fe, 0 0 16px rgba(0, 242, 254, 0.7) !important;
+  box-sizing: border-box !important;
+  transition: all 0.25s ease !important;
+}
+
+.nav-link:hover, .menu-item:hover, .nav-button:hover {
+  color: #ffffff !important;
+  background: rgba(0, 242, 254, 0.28) !important;
+  border-color: #00f2fe !important;
+  box-shadow: 0 0 20px #00f2fe, 0 0 40px rgba(0, 242, 254, 0.8), inset 0 0 12px rgba(0, 242, 254, 0.4) !important;
+  text-shadow: 0 0 6px #ffffff, 0 0 16px #00f2fe, 0 0 32px #00f2fe !important;
+  transform: scale(1.03) !important;
+}
+
+/* インデックス番号バッジ（01〜06） */
+.nav-idx {
+  font-size: 0.63rem !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  background: rgba(0, 242, 254, 0.4) !important;
+  padding: 1px 5px !important;
+  border-radius: 9999px !important;
+  text-shadow: 0 0 6px #00f2fe, 0 0 12px #00f2fe !important;
+  box-shadow: 0 0 6px rgba(0, 242, 254, 0.5) !important;
+  line-height: 1.2 !important;
+  flex-shrink: 0 !important;
+  display: inline-block !important;
+}
+
+/* ==========================================================================
+   Windows（PC大画面環境：画面幅1025px以上）でのオレンジ色テキストバー被さり隠れ完全修復パッチ
+   ========================================================================== */
+@media screen and (min-width: 1025px) {
+  /* PC環境用のヘッダー高さを自動調整し、無駄な下部余白を安全にリセット */
+  .site-header {
+    height: auto !important;
+    padding-top: 6px !important;
+    padding-bottom: 0px !important;
+    box-sizing: border-box !important;
+  }
+  
+  .header-inner {
+    height: auto !important;
+    padding-bottom: 4px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* ヒーローセクション上部パディングを適切に確保し、固定メニューバーとの間に十分なスペースを確保 */
+  .hero-section {
+    padding-top: clamp(140px, 16vh, 185px) !important;
+    margin-top: 0 !important;
+  }
+
+  /* オレンジ色テキストバー（MUSIC TECH LAB / 最新アニソン…）の上部マージンを押し広げ、100%完全露出 */
+  .hero-header-meta {
+    margin-top: 24px !important;
+    position: relative !important;
+    z-index: 10 !important;
+  }
+}
+
+/* ==========================================================================
+   スマホ・iPad環境（画面幅1024px以下）での古い上書きルールの完全破壊 ＆ 最上部常時ガチ固定（Windows・iPadと100%同一化）
+   ========================================================================== */
+@media screen and (max-width: 1024px) {
+  /* 【右ズレ（横座標ズレ）完全消滅】スマホ時は物理的な太い枠線（border 4px）を完全撤廃し、左右均等にビューポート幅へフィット */
+  html {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-text-size-adjust: 100% !important;
+  }
+
+  body, .main-container {
+    border-left: none !important;
+    border-right: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    position: static !important; /* position: relative による固定座標の狂いを完全排除 */
+    overflow-x: clip !important; /* iOS Safariでfixedが外れる原因となるoverflow-x: hiddenのスクロールハイジャックを防止 */
+    
+    /* 左右のサイバーネオン光彩はbox-shadow（内側溶け込み）だけで表現し、物理的な横ズレ・右ズレを1ミリも発生させない */
+    box-shadow: 
+      inset 40px 0 30px -10px rgba(57, 255, 20, 0.3),
+      inset -40px 0 30px -10px rgba(255, 215, 0, 0.25) !important;
+  }
+
+  /* 【最上部ガチ固定＆追従完全保証】スクロール時に上に流れて外れるバグを完全破壊 */
+  .site-header,
+  header#siteHeader,
+  header.site-header {
+    position: fixed !important;
+    position: -webkit-fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    width: 100% !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    height: auto !important;
+    min-height: unset !important;
+    max-height: none !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    box-sizing: border-box !important;
+    
+    /* GSAP等のtransform/translateによるContaining Blockハイジャック（固定外れバグ）を完全破壊・無力化 */
+    transform: none !important;
+    -webkit-transform: none !important;
+    translate: none !important;
+    rotate: none !important;
+    scale: none !important;
+    will-change: auto !important;
+    
+    z-index: 999999 !important; /* 最前面完全固定 */
+    background: rgba(3, 3, 3, 0.96) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-bottom: 1px solid rgba(0, 242, 254, 0.25) !important;
+    overflow: visible !important;
+  }
+  
+  .header-inner {
+    height: auto !important;
+    min-height: unset !important;
+    max-height: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    justify-content: center !important;
+    gap: 4px 8px !important;
+    padding: 0 clamp(8px, 2.5vw, 24px) !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+  
+  .brand-logo {
+    margin-bottom: 2px !important;
+  }
+  
+  .site-nav {
+    order: 3 !important;
+    width: 100% !important;
+    margin-top: 2px !important;
+  }
+  
+  .nav-list {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 4px !important; /* 4pxで均等配置 */
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  .nav-link {
+    font-size: 0.70rem !important;
+    padding: 3px 8px !important;
+    line-height: 1.2 !important;
+    border-radius: 14px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    line-break: anywhere !important;
+    text-align: center !important;
+  }
+  
+  .nav-idx {
+    font-size: 0.58rem !important;
+    padding: 1px 4px !important;
+  }
+
+  /* 【オレンジドットのテキストバー被さり完全解消】ヘッダーの拡張分だけ下へ綺麗に押し出して共存 */
+  .hero-section {
+    padding-top: clamp(145px, 24vw, 195px) !important;
+    margin-top: 0 !important;
+  }
+
+  .hero-header-meta {
+    margin-top: 10px !important;
+    position: relative !important;
+    z-index: 10 !important;
+  }
+
+  /* 【自作ゲーム（AI OTOGE-10）タッチ透過＆暴発完全遮断】スマホスクロール時のタッチ干渉を100%防止 */
+  #labCard1GameContainer,
+  #labCard1GameContainer iframe,
+  .app-game-iframe {
+    pointer-events: none !important;
+    touch-action: pan-y !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+  }
+
+  .game-mobile-cover-panel {
+    pointer-events: auto !important;
+    touch-action: pan-y !important;
+  }
+
+  /* ==========================================================================
+     リクエストメーター「横6本×縦2列」2列グリッド化（2番下・4番下・5番下 3箇所共通完全対応）
+     ========================================================================== */
+  .request-chart-tracks-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    padding-bottom: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .request-tracks-grid,
+  #music-request-area .request-tracks-grid,
+  #music-request-area-2 .request-tracks-grid,
+  #music-request-area-3 .request-tracks-grid {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 12px 6px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+
+  .request-column-slot,
+  #music-request-area .request-column-slot,
+  #music-request-area-2 .request-column-slot,
+  #music-request-area-3 .request-column-slot {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  html {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  body, .main-container {
+    border-left: none !important;
+    border-right: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    position: static !important;
+    overflow-x: clip !important;
+    box-shadow: 
+      inset 25px 0 20px -10px rgba(57, 255, 20, 0.3),
+      inset -25px 0 20px -10px rgba(255, 215, 0, 0.25) !important;
+  }
+
+  .site-header,
+  header#siteHeader,
+  header.site-header {
+    position: fixed !important;
+    position: -webkit-fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    width: 100% !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    height: auto !important;
+    min-height: unset !important;
+    max-height: none !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    box-sizing: border-box !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+    translate: none !important;
+    rotate: none !important;
+    scale: none !important;
+    will-change: auto !important;
+    z-index: 999999 !important;
+    background: rgba(3, 3, 3, 0.97) !important;
+  }
+  
+  .header-inner {
+    height: auto !important;
+    min-height: unset !important;
+    max-height: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 6px !important;
+    gap: 3px 6px !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+  
+  .nav-list {
+    gap: 3px 4px !important;
+  }
+  
+  .nav-link {
+    font-size: 0.66rem !important;
+    padding: 3px 6px !important;
+    letter-spacing: 0.01em !important;
+    border-radius: 12px !important;
+  }
+  
+  .nav-idx {
+    font-size: 0.55rem !important;
+    padding: 1px 3px !important;
+  }
+
+  /* 極小スマホでもオレンジドットのテキストバーを絶対に踏み潰さず下へ綺麗に押し出す */
+  .hero-section {
+    padding-top: clamp(155px, 32vw, 210px) !important;
+    margin-top: 0 !important;
+  }
+
+  .hero-header-meta {
+    margin-top: 14px !important;
+  }
+
+  /* 【自作ゲーム（AI OTOGE-10）タッチ透過＆暴発完全遮断】極小スマホでもタッチ干渉を100%防止 */
+  #labCard1GameContainer,
+  #labCard1GameContainer iframe,
+  .app-game-iframe {
+    pointer-events: none !important;
+    touch-action: pan-y !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+  }
+
+  .game-mobile-cover-panel {
+    pointer-events: auto !important;
+    touch-action: pan-y !important;
+  }
+
+  /* 【極小スマホ リクエストメーター「横6本×縦2列」2列グリッド化】 */
+  .request-chart-tracks-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    padding-bottom: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .request-tracks-grid,
+  #music-request-area .request-tracks-grid,
+  #music-request-area-2 .request-tracks-grid,
+  #music-request-area-3 .request-tracks-grid {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 10px 4px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+
+  .request-column-slot,
+  #music-request-area .request-column-slot,
+  #music-request-area-2 .request-column-slot,
+  #music-request-area-3 .request-column-slot {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+}
+
+/* 動画カード内の説明文テキストの表示制限を完全解除 */
+.card-description, .video-description, p[class*="desc"], .video-desc-preview {
+  white-space: normal !important; /* 横一行で固めず、自動改行させる */
+  overflow: visible !important; /* はみ出た文字を隠さずにすべて表示する */
+  text-overflow: clip !important; /* 途中の三点リーダー（...）による省略を解除 */
+  max-height: none !important; /* 高さの制限を無くし、長い文章もすべて下に広げて表示する */
+  display: block !important; /* 2行制限（-webkit-box）を完全解除 */
+  -webkit-line-clamp: unset !important; /* 行数制限を解除し全行表示 */
+  -webkit-box-orient: unset !important;
+}
+
+/* 楽譜カード画像下の黒帯パーツ（右手五線譜＋ドレミ付など）の完全削除・非表示 */
+.sheet-thumb-glass {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* 楽譜カード内の仕様バッジパーツを完全廃止・非表示 */
+.sheet-spec-tags, .spec-tag {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* 05 STORE 楽譜カード全体の等高・レイアウト型崩れ防止セーフティガード */
+.sheet-music-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  align-items: stretch !important; /* 各カードの高さをフラットに自動調整 */
+}
+
+@media (max-width: 1024px) {
+  .sheet-music-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .sheet-music-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+.sheet-card {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important; /* 行の高さに合わせてカード全体をフラットに伸長 */
+  min-width: 0 !important; /* グリッド子要素の横幅突き抜けを100%防止 */
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.sheet-card-body {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important; /* 縦方向の余白を埋め、フッターを最下部へ自然に配置 */
+  min-width: 0 !important; /* フレックス子要素の横突き抜けを100%防止 */
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 楽譜カード曲名／アーティスト名のスペース強制維持＆セーフティ自動改行ガード */
+.sheet-title {
+  white-space: pre-wrap !important; /* 連続する半角・全角スペースの個数と長さを100%忠実に維持 */
+  word-break: break-all !important; /* カード幅を超えた場合でも右端で自然に下段へ美しく自動改行 */
+  overflow-wrap: break-word !important; /* 長い単語や記号のはみ出し・不自然な位置での切断を防止 */
+  line-break: anywhere !important; /* 句読点や記号等の突き抜けを物理的に防止 */
+}
+
+/* 楽譜説明文エリアの自動改行・テキスト突き抜けバグ完全修正（強制折り返しロジック） */
+.sheet-desc {
+  word-break: break-all !important; /* 日本語・英数字・記号に関わらずカード右端で確実に自動改行 */
+  overflow-wrap: break-word !important; /* 長い単語やリンクのはみ出しを確実に防止 */
+  white-space: normal !important; /* 複数行に制限なく下に向かって全文字を自動改行表示 */
+  line-break: anywhere !important; /* 句読点等のあらゆる突き抜けを物理的に完全防止 */
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  max-height: none !important;
+  display: block !important;
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+  line-height: 1.7 !important;
+  font-size: 0.82rem !important;
+  color: #cccccc !important;
+  margin-bottom: 20px !important;
+}
+
+/* フッター（価格・購入ボタン）の最下部固定＆型崩れ完全防止 */
+.sheet-card-footer {
+  margin-top: auto !important; /* 説明文が2行、3行、何行になっても常にカード最下部に美しく整列 */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important; /* ボタンエリアが潰れたり変形するのを完全防止 */
+}
+
+.btn-buy-piascore {
+  flex-shrink: 0 !important;
+  white-space: nowrap !important; /* ボタン内テキストの意図しない改行・崩れを防止 */
+}
+
+/* 05 STORE 最下部「全ラインナップを見る ↗」テキスト・矢印の2倍拡大 ＆ 筐体風ネオン（蛍光グリーン） */
+.store-guide-banner .btn-guide-link,
+.store-guide-banner .btn-guide-link span,
+a.btn-guide-link,
+a.btn-guide-link span {
+  font-size: 1.64rem !important; /* 従来の0.82remから2倍の大きさに拡大 */
+  font-weight: 700 !important;
+  color: #39ff14 !important; /* 鮮烈なネオンライム管カラー（蛍光グリーン） */
+  text-shadow: 
+    0 0 4px #39ff14,
+    0 0 10px rgba(57, 255, 20, 0.75),
+    0 0 20px rgba(57, 255, 20, 0.5),
+    0 0 35px rgba(57, 255, 20, 0.3) !important;
+  text-decoration: none !important;
+  transition: all 0.25s ease !important;
+}
+
+.store-guide-banner .btn-guide-link,
+a.btn-guide-link {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 6px 14px 8px 14px !important;
+  border-bottom: 2px solid #39ff14 !important;
+  box-shadow: 0 4px 16px rgba(57, 255, 20, 0.25) !important;
+  white-space: nowrap !important;
+  border-radius: 4px !important;
+}
+
+.store-guide-banner .btn-guide-link:hover,
+.store-guide-banner .btn-guide-link:hover span,
+a.btn-guide-link:hover,
+a.btn-guide-link:hover span {
+  color: #39ff14 !important; /* ホバー時も蛍光グリーンを完全維持 */
+  border-bottom-color: #39ff14 !important;
+  text-shadow: 
+    0 0 4px #ffffff,
+    0 0 10px #39ff14,
+    0 0 22px #39ff14,
+    0 0 38px #39ff14,
+    0 0 55px rgba(57, 255, 20, 0.85) !important;
+  box-shadow: 0 6px 24px rgba(57, 255, 20, 0.5) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+}
+
+@media (max-width: 480px) {
+  .store-guide-banner .btn-guide-link,
+  .store-guide-banner .btn-guide-link span,
+  a.btn-guide-link,
+  a.btn-guide-link span {
+    font-size: 1.35rem !important;
+  }
+}
+
+.load-more-btn-class, 
+[data-section="02"] .more-btn, 
+[data-section="03"] .more-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #FFFF00 !important; /* 鮮やかなネオンイエロー */
+    font-size: 1.1rem !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 8px rgba(255, 255, 0, 0.8), 0 0 15px rgba(255, 255, 0, 0.5) !important;
+    border: 2px solid #FFFF00 !important;
+    background-color: transparent !important;
+    padding: 12px 24px !important;
+    border-radius: 50px !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    
+    /* 2行に折り返しても絶対に型崩れしないCSSセーフティガード */
+    white-space: normal !important;
+    word-break: break-all !important;
+    overflow-wrap: break-word !important;
+    text-align: center !important;
+    max-width: 100% !important;
+}
+
+.load-more-btn-class:hover,
+[data-section="02"] .more-btn:hover,
+[data-section="03"] .more-btn:hover {
+    color: #FFFF00 !important;
+    text-shadow: 0 0 15px rgba(255, 255, 0, 1), 0 0 25px rgba(255, 255, 0, 0.8) !important;
+    box-shadow: 0 0 15px rgba(255, 255, 0, 0.4) !important;
+}
+
+/* ==========================================================================
+   02 REPERTOIRE (ワンコーラス動画) 動画タイトル スペース強制維持＆自動改行セーフティガード
+   ========================================================================== */
+#repertoire .video-title,
+[data-section="02"] .video-title,
+.repertoire-section .video-title,
+.repertoire-grid .video-card .video-title {
+  /* 【1. スペース強制維持仕様】半角・全角スペースの連続入力を100%そのまま維持 */
+  white-space: pre-wrap !important;
+
+  /* 【2. 3行・4行以上の自動改行セーフティガード】カード右端で確実に自動改行 */
+  word-break: break-all !important;
+  overflow-wrap: break-word !important;
+  line-break: anywhere !important; /* 記号や空白の突き抜けを物理的に完全防止 */
+
+  /* 2行制限（ブレーキ）の完全解除：3行・4行・5行と下に向かって制限なく全表示 */
+  display: block !important;
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  max-height: none !important;
+  height: auto !important;
+
+  /* 文字の美しさと行間のフラットな確保 */
+  line-height: 1.45 !important;
+  margin-bottom: 12px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 動画カード自体の高さ・枠組みの自動調整（型崩れ完全防止） */
+#repertoire .video-card,
+[data-section="02"] .video-card,
+.repertoire-section .video-card {
+  height: 100% !important;
+  max-height: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+}
+
+#repertoire .video-content,
+[data-section="02"] .video-content,
+.repertoire-section .video-content {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  box-sizing: border-box !important;
+}
+
+#repertoire .video-content > div:first-child,
+[data-section="02"] .video-content > div:first-child {
+  flex: 1 1 auto !important;
+}
+
+#repertoire .video-card-footer,
+[data-section="02"] .video-card-footer {
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+}
+
+/* ==========================================================================
+   03 SHORTS (サビだけショート動画) タイトル スペース強制維持＆自動改行セーフティガード
+   ========================================================================== */
+#shorts .shorts-title,
+[data-section="03"] .shorts-title,
+.shorts-section .shorts-title,
+.shorts-grid .shorts-card .shorts-title {
+  /* 【1. スペース強制維持仕様】半角・全角スペースの連続入力を100%そのまま維持 */
+  white-space: pre-wrap !important;
+
+  /* 【2. 3行・4行以上の自動改行セーフティガード】縦型カード右端で確実に自動改行 */
+  word-break: break-all !important;
+  overflow-wrap: break-word !important;
+  line-break: anywhere !important; /* 記号や空白の突き抜けを物理的に完全防止 */
+
+  /* 2行制限（ブレーキ）の完全解除：3行・4行・5行と下に向かって制限なく全表示 */
+  display: block !important;
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  max-height: none !important;
+  height: auto !important;
+
+  /* 縦型カード内でのくっきりとした視認性と美しい文字組 */
+  line-height: 1.35 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 縦型ショートカードのコンテナ・レイアウト自動調整（型崩れ完全防止） */
+#shorts .shorts-content,
+[data-section="03"] .shorts-content,
+.shorts-section .shorts-content {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+}
+
+#shorts .shorts-meta-row,
+[data-section="03"] .shorts-meta-row,
+.shorts-section .shorts-meta-row {
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+}
+
+#shorts .shorts-overlay-gradient,
+[data-section="03"] .shorts-overlay-gradient,
+.shorts-section .shorts-overlay-gradient {
+  height: 80% !important; /* タイトルが3〜4行になっても文字背景の可読性を100%維持 */
+}
+
+/* ==========================================================================
+   00 HERO 大見出し（メインタイトル）文字数制限完全撤廃 ＆ スペース（空白）100%反映パッチ
+   ========================================================================== */
+#heroMainTitle,
+.hero-title,
+.hero-title-fullname,
+.hero-title-wrap,
+#hero .hero-title-fullname,
+#hero .hero-title-wrap {
+  /* 【1. スペース・空白・改行100%維持仕様】半角・全角スペースや改行の個数・長さを100%忠実に維持 */
+  white-space: pre-wrap !important;
+
+  /* 【2. 自動改行セーフティガード】画面端・コンテナ端で確実に自動改行し文字欠け・途中切れを完全防止 */
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+  line-break: anywhere !important;
+
+  /* 【3. 横幅100%完全確保 ＆ レイアウト完全解放】 */
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+
+  /* 【4. 文字数制限（ブレーキ）の完全撤廃】 */
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+  max-height: none !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+/* タイトル内部グループのflex制約・gap干渉を完全撤廃し、インラインテキストフローに統一 */
+#heroMainTitle .title-group-main,
+#heroMainTitle .title-group-brand,
+.hero-title-fullname .title-group-main,
+.hero-title-fullname .title-group-brand {
+  display: inline !important;
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+  line-break: anywhere !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* 全内部要素（セグメント・グローテキスト・ブラケット・記号等）の nowrap を完全解除 */
+#heroMainTitle .title-segment,
+#heroMainTitle .text-white-glow,
+#heroMainTitle .brand-name-glow,
+#heroMainTitle .brand-bracket,
+#heroMainTitle .title-ampersand,
+#heroMainTitle .title-separator-dot,
+#heroMainTitle .text-piano-accent,
+#heroMainTitle * {
+  display: inline !important;
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+  line-break: anywhere !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* ヒーローコンテナ・ラッパーの中央配置 ＆ 心地よい余白の維持 */
+#hero .hero-container,
+.hero-container {
+  overflow: visible !important;
+  width: 100% !important;
+  max-width: 1360px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+}
+
+#hero .hero-title-wrap,
+.hero-title-wrap {
+  overflow: visible !important;
+  width: 100% !important;
+  max-width: 1180px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+}
+
+/* 管理画面（ポップアップ＆専用ページ）入力フォームのスペース・自動改行完全保持 */
+#popHeroMainTitle,
+#heroMainTitleInput {
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* ==========================================================================
+   00 HERO ファーストビュー完全収容 ＆ y座標引き上げ ＆ 中央配置完全復元パッチ
+   ========================================================================== */
+
+/* 1. ヒーローセクション全体の縦位置（y座標）を上方向へグッと引き上げ（スクロールなしで100%収容） */
+.hero-section,
+#hero {
+  min-height: 100vh !important;
+  height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding-top: clamp(80px, 9vh, 105px) !important;
+  padding-bottom: clamp(20px, 2.5vh, 36px) !important;
+  box-sizing: border-box !important;
+}
+
+/* 2. ヒーロー最上部メタ（MUSIC TECH LAB / 最新アニソン…）のセンター揃え ＆ マージン引き締め */
+.hero-header-meta,
+#hero .hero-header-meta {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: clamp(10px, 1.5vw, 18px) !important;
+  margin-top: 0 !important;
+  margin-bottom: clamp(10px, 1.6vh, 16px) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: center !important;
+  width: 100% !important;
+}
+
+/* 3. オレンジ色リンクボタン（OFFICIAL PIANO ARCHIVE）のセンター配置 ＆ y座標引き上げ */
+.hero-brand-top,
+#hero .hero-brand-top {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin-bottom: clamp(8px, 1.3vh, 14px) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: center !important;
+  width: 100% !important;
+}
+
+.brand-pill,
+#heroBrandPill {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: inline-flex !important;
+}
+
+/* 4. ヒーロー大見出し（メインタイトル）：文字数無制限・スペース100%維持 ＆ ピシッと中央揃え */
+.hero-title-wrap,
+#hero .hero-title-wrap {
+  width: 100% !important;
+  max-width: 1180px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  margin-bottom: clamp(12px, 1.8vh, 22px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+}
+
+#heroMainTitle,
+.hero-title,
+.hero-title-fullname,
+#hero .hero-title-fullname {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  margin-bottom: clamp(8px, 1.4vh, 14px) !important;
+  text-align: center !important;
+  display: block !important;
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+  line-break: anywhere !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  max-height: none !important;
+  height: auto !important;
+  line-height: 1.18 !important;
+}
+
+#heroMainTitle .title-group-main,
+#heroMainTitle .title-group-brand,
+.hero-title-fullname .title-group-main,
+.hero-title-fullname .title-group-brand {
+  display: inline !important;
+  text-align: center !important;
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+  line-break: anywhere !important;
+}
+
+#heroMainTitle .title-segment,
+#heroMainTitle .text-white-glow,
+#heroMainTitle .brand-name-glow,
+#heroMainTitle .brand-bracket,
+#heroMainTitle .title-ampersand,
+#heroMainTitle .title-separator-dot,
+#heroMainTitle .text-piano-accent,
+#heroMainTitle * {
+  text-align: center !important;
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+  line-break: anywhere !important;
+}
+
+/* 5. その下の説明文（88鍵が描き出す…）：完全センター配置 ＆ 行間・マージン適正化 */
+.hero-tagline,
+#heroTagline {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: center !important;
+  max-width: 740px !important;
+  width: 100% !important;
+  line-height: 1.65 !important;
+  font-size: clamp(0.88rem, 1.12vw, 1.05rem) !important;
+  margin-bottom: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* 6. さらにその下の3枚の実績カード ＆ SNSアイコン群（OFFICIAL LINKS）：完全センター配置 ＆ y座標引き上げ */
+.hero-bottom-grid,
+#hero .hero-bottom-grid {
+  width: 100% !important;
+  max-width: 1180px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  margin-top: clamp(12px, 2vh, 24px) !important;
+  padding-right: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: clamp(14px, 2vw, 28px) !important;
+  flex-wrap: wrap !important;
+  box-sizing: border-box !important;
+}
+
+/* 3枚の実績カード群：センター整列 */
+.hero-footer-meta,
+#hero .hero-footer-meta {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: clamp(10px, 1.4vw, 18px) !important;
+  flex-wrap: wrap !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* 実績カード1枚1枚：中央揃え ＆ 高さをスリム化してファーストビューに完璧収容 */
+.stat-pill,
+#hero .stat-pill {
+  text-align: center !important;
+  align-items: center !important;
+  padding: clamp(9px, 1.2vh, 13px) clamp(14px, 1.8vw, 20px) !important;
+  min-width: clamp(140px, 11vw, 170px) !important;
+  box-sizing: border-box !important;
+}
+
+.stat-pill .stat-label,
+.stat-pill .stat-value {
+  text-align: center !important;
+  width: 100% !important;
+}
+
+/* SNSアイコン群（OFFICIAL LINKS）オレンジ色ネオン：センター配置 ＆ コンパクト収容 */
+.hero-social-dock,
+#hero .hero-social-dock {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: clamp(6px, 0.9vh, 8px) clamp(14px, 1.4vw, 18px) !important;
+}
+
+/* 7. レスポンシブ保護（画面幅1024px以下での既存成果を100%完全死守） */
+@media (max-width: 1024px) {
+  .hero-bottom-grid,
+  #hero .hero-bottom-grid {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 14px !important;
+  }
+  .hero-footer-meta,
+  #hero .hero-footer-meta {
+    justify-content: center !important;
+  }
+}
+
+
+

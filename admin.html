@@ -1,0 +1,2913 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MUSIC TECH LAB - 管理コントロールパネル (ADMIN)</title>
+  <script>
+    (function() {
+      try {
+        var proto = window.location.protocol;
+        var hn = (window.location.hostname || '').toLowerCase();
+        var isLocalWinPC = (
+          proto === 'file:' ||
+          hn === 'localhost' ||
+          hn === '127.0.0.1' ||
+          hn === '::1' ||
+          hn === '[::1]' ||
+          hn === ''
+        );
+        if (!isLocalWinPC) {
+          document.documentElement.innerHTML = '';
+          window.location.replace('./index.html');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg-deep: #060608;
+      --bg-surface: #0e0e14;
+      --bg-card: #14141e;
+      --bg-card-hover: #1a1a28;
+      --gold-primary: #d4af37;
+      --gold-light: #f5e3a9;
+      --gold-glow: rgba(212, 175, 55, 0.25);
+      --gold-gradient: linear-gradient(135deg, #f5e3a9 0%, #d4af37 50%, #aa8620 100%);
+      --text-ivory: #f8f6f0;
+      --text-subtle: #a6a6b8;
+      --text-muted: #6e6e80;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-gold: rgba(212, 175, 55, 0.35);
+      --font-serif: 'Cinzel', serif;
+      --font-sans: 'Plus Jakarta Sans', sans-serif;
+      --font-mincho: 'Shippori Mincho', serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-deep);
+      color: var(--text-ivory);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      line-height: 1.6;
+      background-image: 
+        radial-gradient(circle at 10% 10%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 90%, rgba(30, 41, 59, 0.2) 0%, transparent 50%);
+    }
+
+    /* --------------------------------------------------------------------------
+       AUTH SCREEN (PASSWORD GATE)
+       -------------------------------------------------------------------------- */
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 6, 8, 0.96);
+      backdrop-filter: blur(25px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      padding: 20px;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    .auth-overlay.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-gold);
+      border-radius: 16px;
+      padding: 40px 32px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px var(--gold-glow);
+    }
+
+    .auth-monogram {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid var(--border-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold-light);
+    }
+
+    .auth-title {
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      letter-spacing: 0.12em;
+      color: var(--gold-light);
+      margin-bottom: 6px;
+    }
+
+    .auth-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .auth-input-group {
+      position: relative;
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      color: var(--text-ivory);
+      font-size: 1rem;
+      text-align: center;
+      letter-spacing: 0.25em;
+      outline: none;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .auth-input:focus {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 15px var(--gold-glow);
+    }
+
+    .auth-btn {
+      padding: 14px;
+      background: var(--gold-gradient);
+      border: none;
+      border-radius: 10px;
+      color: #060608;
+      font-family: var(--font-serif);
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .auth-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(212, 175, 55, 0.4);
+    }
+
+    .auth-hint {
+      font-size: 0.75rem;
+      color: var(--gold-primary);
+      opacity: 0.8;
+      margin-top: 14px;
+    }
+
+    .auth-error {
+      font-size: 0.8rem;
+      color: #ff5e5e;
+      margin-top: 8px;
+      display: none;
+    }
+
+    /* --------------------------------------------------------------------------
+       ADMIN DASHBOARD LAYOUT
+       -------------------------------------------------------------------------- */
+    .admin-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px 140px;
+    }
+
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid var(--border-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold-light);
+    }
+
+    .brand-title {
+      font-family: var(--font-serif);
+      font-size: 1.25rem;
+      color: var(--gold-light);
+      letter-spacing: 0.1em;
+    }
+
+    .brand-tag {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.15em;
+    }
+
+    .header-btns {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-ivory);
+      font-size: 0.82rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--border-gold);
+    }
+
+    /* Tabs */
+    .admin-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: var(--text-subtle);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-ivory);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tab-btn.is-active {
+      color: #060608;
+      background: var(--gold-gradient);
+      font-weight: 700;
+    }
+
+    /* Tab Panels */
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.is-active {
+      display: block;
+    }
+
+    /* Section Boxes */
+    .section-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .section-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .card-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-icon {
+      color: var(--gold-primary);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      color: var(--text-ivory);
+      font-weight: 600;
+    }
+
+    .card-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Add Form Box */
+    .add-form-box {
+      background: rgba(20, 20, 30, 0.6);
+      border: 1px dashed var(--border-gold);
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 28px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .form-label {
+      font-size: 0.78rem;
+      color: var(--gold-primary);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .form-input, .form-textarea {
+      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: var(--text-ivory);
+      font-family: inherit;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-input:focus, .form-textarea:focus {
+      border-color: var(--gold-primary);
+    }
+
+    .btn-add {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: rgba(212, 175, 55, 0.15);
+      border: 1px solid var(--border-gold);
+      border-radius: 8px;
+      color: var(--gold-light);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-add:hover {
+      background: var(--gold-gradient);
+      color: #060608;
+      border-color: transparent;
+    }
+
+    .form-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .insert-pos-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--gold-light);
+      background: rgba(212, 175, 55, 0.08);
+      border: 1px solid var(--border-gold);
+      padding: 7px 14px;
+      border-radius: 8px;
+    }
+
+    .insert-pos-input {
+      width: 60px;
+      padding: 5px 6px;
+      text-align: center;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-gold);
+      color: var(--text-ivory);
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 700;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .insert-pos-input:focus {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 8px var(--gold-glow);
+    }
+
+    /* List Items (Cards) */
+    .items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .item-row:hover {
+      border-color: rgba(212, 175, 55, 0.3);
+      background: var(--bg-card-hover);
+    }
+
+    .item-thumb {
+      width: 100px;
+      height: 56px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: #000;
+      flex-shrink: 0;
+    }
+
+    .item-thumb.shorts-thumb {
+      width: 48px;
+      height: 72px;
+    }
+
+    .item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .item-badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(212, 175, 55, 0.15);
+      color: var(--gold-light);
+      margin-bottom: 4px;
+    }
+
+    .item-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-ivory);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .item-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-delete {
+      width: 34px;
+      height: 34px;
+      border-radius: 6px;
+      background: rgba(255, 80, 80, 0.1);
+      border: 1px solid rgba(255, 80, 80, 0.2);
+      color: #ff6b6b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-delete:hover {
+      background: #ff4d4d;
+      color: #fff;
+    }
+
+    /* --------------------------------------------------------------------------
+       STICKY BOTTOM SAVE BAR
+       -------------------------------------------------------------------------- */
+    .save-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(10, 10, 16, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-gold);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.7);
+    }
+
+    .save-bar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .save-status-text {
+      font-size: 0.85rem;
+      color: var(--text-subtle);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #41c9b4;
+      box-shadow: 0 0 8px #41c9b4;
+    }
+
+    .save-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-reset {
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: var(--text-subtle);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-reset:hover {
+      color: var(--text-ivory);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-save-main {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 32px;
+      background: var(--gold-gradient);
+      border: none;
+      border-radius: 8px;
+      color: #060608;
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .btn-save-main:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      background: #14141e;
+      border: 1px solid var(--gold-primary);
+      border-radius: 8px;
+      padding: 14px 24px;
+      color: var(--text-ivory);
+      font-size: 0.88rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      transform: translateY(-50px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 100000;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toast.is-active {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast-icon { color: var(--gold-primary); }
+
+    /* --------------------------------------------------------------------------
+       INLINE MAINTENANCE SWITCH (最下部バー・2つのボタンの間の隙間に横一列配置)
+       -------------------------------------------------------------------------- */
+    .save-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .maintenance-inline-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid var(--border-gold);
+      color: var(--gold-light);
+      font-family: inherit;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.22s ease;
+      user-select: none;
+      white-space: nowrap;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+    }
+
+    .maintenance-inline-toggle:hover {
+      background: rgba(212, 175, 55, 0.22);
+      border-color: var(--gold-primary);
+      transform: translateY(-1px);
+    }
+
+    .maintenance-inline-toggle.is-maintenance-on {
+      background: linear-gradient(135deg, #ff5e5e 0%, #d63031 100%);
+      border-color: #ff9494;
+      color: #ffffff;
+      box-shadow: 0 4px 18px rgba(255, 70, 70, 0.45);
+    }
+
+    .toggle-switch-track {
+      width: 42px;
+      height: 22px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      position: relative;
+      transition: background 0.25s ease;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      flex-shrink: 0;
+    }
+
+    .toggle-switch-thumb {
+      width: 16px;
+      height: 16px;
+      background: var(--gold-light);
+      border-radius: 50%;
+      position: absolute;
+      top: 2px;
+      left: 3px;
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background 0.25s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    }
+
+    .maintenance-inline-toggle.is-maintenance-on .toggle-switch-track {
+      background: rgba(0, 0, 0, 0.35);
+      border-color: rgba(255, 255, 255, 0.55);
+    }
+
+    .maintenance-inline-toggle.is-maintenance-on .toggle-switch-thumb {
+      transform: translateX(18px);
+      background: #ffffff;
+    }
+
+    .maintenance-state-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      background: rgba(65, 201, 180, 0.18);
+      color: #41c9b4;
+      border: 1px solid rgba(65, 201, 180, 0.4);
+    }
+
+    .maintenance-inline-toggle.is-maintenance-on .maintenance-state-pill {
+      background: rgba(0, 0, 0, 0.3);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    @media (max-width: 768px) {
+      .item-row { flex-direction: column; align-items: flex-start; }
+      .item-thumb { width: 100%; height: 160px; }
+      .item-thumb.shorts-thumb { width: 100px; height: 150px; }
+      .save-bar-inner { flex-direction: column; align-items: stretch; }
+      .save-actions { justify-content: space-between; }
+      .btn-save-main { width: 100%; justify-content: center; }
+      .maintenance-inline-toggle { width: 100%; justify-content: center; white-space: normal; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- --------------------------------------------------------------------------
+       1. PASSWORD GATEWAY SCREEN
+       -------------------------------------------------------------------------- -->
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-card">
+      <div class="auth-monogram">
+        <i data-lucide="lock" style="width:28px;height:28px;"></i>
+      </div>
+      <h2 class="auth-title">MUSIC TECH LAB</h2>
+      <p class="auth-subtitle">管理者認証（パスワードを入力してください）</p>
+
+      <form class="auth-form" id="authForm">
+        <div class="auth-input-group">
+          <input 
+            type="password" 
+            id="authPassword" 
+            class="auth-input" 
+            placeholder="••••" 
+            autocomplete="current-password"
+            autofocus
+            required
+          />
+        </div>
+        <button type="submit" class="auth-btn">
+          <span>管理画面に入る ↗</span>
+        </button>
+        <div class="auth-error" id="authError">パスワードが違います。もう一度入力してください。</div>
+        <p class="auth-hint">※ 初期仮パスワード: <strong>1234</strong></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- --------------------------------------------------------------------------
+       2. ADMIN DASHBOARD WORKSPACE
+       -------------------------------------------------------------------------- -->
+  <div class="admin-container" id="adminContainer">
+    <!-- Admin Header -->
+    <header class="admin-header">
+      <div class="brand-wrap">
+        <div class="brand-icon">
+          <i data-lucide="sliders" style="width:24px;height:24px;"></i>
+        </div>
+        <div>
+          <h1 class="brand-title">MUSIC TECH LAB / ADMIN</h1>
+          <p class="brand-tag">コンテンツ手動管理システム (NO-API MANUAL CONTROL)</p>
+        </div>
+      </div>
+
+      <div class="header-btns">
+        <a href="/" target="_blank" class="btn-secondary" title="別タブで表側サイトを開く">
+          <i data-lucide="external-link" style="width:16px;height:16px;"></i>
+          <span>表側サイトを開く</span>
+        </a>
+        <button type="button" class="btn-secondary" id="btnLogout" title="ログアウト">
+          <i data-lucide="log-out" style="width:16px;height:16px;"></i>
+          <span>ログアウト</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="admin-tabs">
+      <button type="button" class="tab-btn is-active" data-tab="tab-channel-a">
+        <i data-lucide="video" style="width:16px;height:16px;"></i>
+        <span>02 ワンコーラス</span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="tab-channel-b">
+        <i data-lucide="smartphone" style="width:16px;height:16px;"></i>
+        <span>03 ショート動画</span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="tab-piascore">
+        <i data-lucide="file-text" style="width:16px;height:16px;"></i>
+        <span>05 Piascore楽譜</span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="tab-sections">
+        <i data-lucide="layout" style="width:16px;height:16px;"></i>
+        <span>ヒーロー・01・04 テキスト管理</span>
+      </button>
+    </nav>
+
+    <!-- ========================================================================
+         TAB 1: YOUTUBE CHANNEL A (REGULAR 16:9 COVERS)
+         ======================================================================== -->
+    <div class="tab-panel is-active" id="tab-channel-a">
+      <div class="section-card">
+        <div class="section-card-header">
+          <div>
+            <div class="card-title-group">
+              <i data-lucide="play-square" class="card-icon"></i>
+              <h2 class="card-title">YouTube チャンネル A：最新動画の登録・編集</h2>
+            </div>
+            <p class="card-desc">02 MAIN COVERS セクションおよびシアターモーダルで再生されるメインの16:9横型動画です。</p>
+          </div>
+        </div>
+
+        <!-- 02 MAIN COVERS Section Text Settings Form -->
+        <div class="add-form-box" style="margin-bottom: 28px; background: rgba(26, 26, 38, 0.7);">
+          <h3 style="font-size: 0.95rem; color: var(--gold-light); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="edit-3" style="width:18px;height:18px;"></i>
+            02 MAIN COVERS セクション見出し・説明文のカスタマイズ
+          </h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">バッジテキスト</label>
+              <input type="text" id="regSectionBadgeInput" class="form-input" placeholder="FULL HARMONIC ARRANGEMENTS">
+            </div>
+            <div class="form-group">
+              <label class="form-label">セクション大見出し</label>
+              <input type="text" id="regSectionTitleInput" class="form-input" placeholder="02 / MAIN COVERS (ワンコーラス)">
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">YouTubeリンク先URL</label>
+              <input type="url" id="regYoutubeUrlInput" class="form-input" placeholder="https://youtube.com" value="https://youtube.com">
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">セクション説明文 / リード文</label>
+              <textarea id="regSectionDescInput" class="form-textarea" rows="2" placeholder="じっくり聴かせる、原曲の魅力を凝縮したワンコーラス演奏。&#10;Melodic Depth & Dynamic Range — ピアノならではの豊かな響きを味わうメイン動画。"></textarea>
+            </div>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--gold-light); opacity: 0.85; margin-top: 6px;">
+            ※ 画面下部の「サイトを更新する」ボタンを押すと、入力したテキストが表側の「02 MAIN COVERS」に即座に反映されます。
+          </p>
+        </div>
+
+        <!-- Add New Regular Video Form -->
+        <div class="add-form-box">
+          <form id="formAddRegular">
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label class="form-label">YouTube 動画 URL または 動画ID *</label>
+                <input type="text" id="regUrl" class="form-input" placeholder="例: https://www.youtube.com/watch?v=M576WGiDBdQ または M576WGiDBdQ" required>
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">動画タイトル / 曲名 *</label>
+                <input type="text" id="regTitle" class="form-input" placeholder="例: 【推しの子】第2期OP「ファタール」- GEMN (Piano Solo Cover)" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">カテゴリ / タグ</label>
+                <input type="text" id="regCategory" class="form-input" placeholder="例: Anime Piano / Game Music" value="Anime Piano">
+              </div>
+              <div class="form-group">
+                <label class="form-label">演奏時間</label>
+                <input type="text" id="regDuration" class="form-input" placeholder="例: 1:45" value="1:45">
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">カスタムサムネイル画像 URL（省略時はYouTube標準サムネイルを自動設定）</label>
+                <input type="url" id="regThumb" class="form-input" placeholder="https://...">
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">動画説明文</label>
+                <textarea id="regDesc" class="form-textarea" rows="2" placeholder="曲のこだわりや解説を入力..."></textarea>
+              </div>
+            </div>
+            <div class="form-actions">
+              <div class="insert-pos-box">
+                <span>追加する位置：</span>
+                <input type="number" id="regInsertPos" class="insert-pos-input" min="1" value="1">
+                <span>番目</span>
+              </div>
+              <button type="submit" class="btn-add">
+                <i data-lucide="plus"></i>
+                <span>動画をリストに追加する</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Items List -->
+        <div class="items-list" id="listRegular">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================
+         TAB 2: YOUTUBE CHANNEL B (SHORTS 9:16)
+         ======================================================================== -->
+    <div class="tab-panel" id="tab-channel-b">
+      <div class="section-card">
+        <div class="section-card-header">
+          <div>
+            <div class="card-title-group">
+              <i data-lucide="smartphone" class="card-icon"></i>
+              <h2 class="card-title">YouTube チャンネル B：最新Shorts動画の登録・編集</h2>
+            </div>
+            <p class="card-desc">03 SHORTS セクションに並ぶ「サビだけ弾いてみた」縦型ショート動画です。</p>
+          </div>
+        </div>
+
+        <!-- 03 SHORTS Section Text Settings Form -->
+        <div class="add-form-box" style="margin-bottom: 28px; background: rgba(26, 26, 38, 0.7);">
+          <h3 style="font-size: 0.95rem; color: var(--gold-light); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="edit-3" style="width:18px;height:18px;"></i>
+            03 SHORTS セクション見出し・説明文のカスタマイズ
+          </h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">バッジテキスト</label>
+              <input type="text" id="shtSectionBadgeInput" class="form-input" placeholder="CHORUS HIGHLIGHTS IN 60s">
+            </div>
+            <div class="form-group">
+              <label class="form-label">セクション大見出し</label>
+              <input type="text" id="shtSectionTitleInput" class="form-input" placeholder="03 / SHORTS (サビだけ弾いてみた)">
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">YouTubeリンク先URL</label>
+              <input type="url" id="shtYoutubeUrlInput" class="form-input" placeholder="https://youtube.com" value="https://youtube.com">
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">セクション説明文 / リード文</label>
+              <textarea id="shtSectionDescInput" class="form-textarea" rows="2" placeholder="サビの爆発力を1分に凝縮した、疾走感あるショート動画。&#10;Instant Climax & Finger Speed — スマホに最適化された縦長ショート演奏。"></textarea>
+            </div>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--gold-light); opacity: 0.85; margin-top: 6px;">
+            ※ 画面下部の「サイトを更新する」ボタンを押すと、入力したテキストが表側の「03 SHORTS」に即座に反映されます。
+          </p>
+        </div>
+
+        <!-- Add New Shorts Video Form -->
+        <div class="add-form-box">
+          <form id="formAddShorts">
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label class="form-label">YouTube Shorts URL または 動画ID *</label>
+                <input type="text" id="shtUrl" class="form-input" placeholder="例: https://www.youtube.com/shorts/9bZkp7q19f0 または 9bZkp7q19f0" required>
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">Shorts タイトル *</label>
+                <input type="text" id="shtTitle" class="form-input" placeholder="例: 【サビだけ】KICK BACK / 米津玄師（チェンソーマン）#shorts" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">再生回数表記</label>
+                <input type="text" id="shtViews" class="form-input" placeholder="例: 1.7M" value="1.2M">
+              </div>
+              <div class="form-group">
+                <label class="form-label">いいね数表記</label>
+                <input type="text" id="shtLikes" class="form-input" placeholder="例: 130K" value="85K">
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">カスタムサムネイル画像 URL（省略時はYouTube標準サムネイルを自動設定）</label>
+                <input type="url" id="shtThumb" class="form-input" placeholder="https://...">
+              </div>
+            </div>
+            <div class="form-actions">
+              <div class="insert-pos-box">
+                <span>追加する位置：</span>
+                <input type="number" id="shtInsertPos" class="insert-pos-input" min="1" value="1">
+                <span>番目</span>
+              </div>
+              <button type="submit" class="btn-add">
+                <i data-lucide="plus"></i>
+                <span>ショート動画をリストに追加する</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Items List -->
+        <div class="items-list" id="listShorts">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================
+         TAB 3: PIASCORE SHEET MUSIC DATA (05 STORE)
+         ======================================================================== -->
+    <div class="tab-panel" id="tab-piascore">
+      <div class="section-card">
+        <div class="section-card-header">
+          <div>
+            <div class="card-title-group">
+              <i data-lucide="shopping-bag" class="card-icon"></i>
+              <h2 class="card-title">Piascore 楽譜販売データ：登録・編集</h2>
+            </div>
+            <p class="card-desc">05 STORE（公式楽譜販売）セクションに並ぶ楽譜カードです。</p>
+          </div>
+        </div>
+
+        <!-- Store Section Text Settings Form -->
+        <div class="add-form-box" style="margin-bottom: 28px; background: rgba(26, 26, 38, 0.7);">
+          <h3 style="font-size: 0.95rem; color: var(--gold-light); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="edit-3" style="width:18px;height:18px;"></i>
+            05 STORE セクション見出し・説明文のカスタマイズ
+          </h3>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label class="form-label">ストア説明文（セクション上部）</label>
+              <textarea id="storeSectionDescInput" class="form-textarea" rows="2" placeholder="動画で使用しているオリジナルピアノ楽譜をPiascore（ピアスコア）にて好評配信中。購入後すぐにPDFでダウンロード＆印刷可能です。"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">バナー見出し（1行目）</label>
+              <input type="text" id="storeBannerTitleInput" class="form-input" placeholder="動画を見ながら一緒に弾ける。">
+            </div>
+            <div class="form-group">
+              <label class="form-label">バナー強調見出し（2行目・ゴールド文字）</label>
+              <input type="text" id="storeBannerHighlightInput" class="form-input" placeholder="公式オリジナルピアノ楽譜。">
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">バナー詳細説明文</label>
+              <textarea id="storeBannerDescInput" class="form-textarea" rows="2" placeholder="当チャンネルの動画内で演奏しているアレンジをそのまま完全再現したオリジナルピアノ楽譜です。国内最大級の楽譜配信プラットフォーム「Piascore」にて安全に即時ダウンロードいただけます。"></textarea>
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">Piascore 公式ストアリンク URL</label>
+              <input type="url" id="storePublisherUrlInput" class="form-input" placeholder="https://store.piascore.com/publishers/10366">
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">最下部ガイドカード説明文（横長カード）</label>
+              <textarea id="storeGuideDescInput" class="form-textarea" rows="2" placeholder="Piascoreで購入いただいた楽譜は、iPad・iPhone・Android・パソコンですぐに閲覧・印刷いただけます。Piascoreアプリの自動譜めくり機能や書き込み機能にも完全対応しています。"></textarea>
+            </div>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--gold-light); opacity: 0.85; margin-top: 6px;">
+            ※ 画面下部の「サイトを更新する」ボタンを押すと、入力したテキストが表側の「05 STORE」に即座に反映されます。
+          </p>
+        </div>
+
+        <!-- Add New Sheet Music Form -->
+        <div class="add-form-box">
+          <form id="formAddSheet">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">曲名 / アーティスト *</label>
+                <input type="text" id="sheetTitle" class="form-input" placeholder="例: ファタール / GEMN" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">曲名・アーティストの表示色</label>
+                <div style="display: flex; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 4px 10px; height: 42px;">
+                  <input type="color" id="sheetTitleColor" value="#ffffff" style="width: 38px; height: 32px; border: 1px solid var(--border-gold); border-radius: 6px; background: transparent; cursor: pointer; padding: 0;">
+                  <span id="sheetTitleColorVal" style="font-size: 0.88rem; font-family: monospace; color: var(--gold-light); font-weight: 700;">#ffffff</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">作品名 / タイアップ *</label>
+                <input type="text" id="sheetWork" class="form-input" placeholder="例: 【推しの子】第2期 OP" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">販売価格 (円) *</label>
+                <input type="number" id="sheetPrice" class="form-input" placeholder="440" value="440" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">バッジタグ (HOT / POPULAR / NEW 等)</label>
+                <input type="text" id="sheetTag" class="form-input" placeholder="HOT" value="HOT">
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">Piascore 楽曲購入ページ URL *</label>
+                <input type="url" id="sheetUrl" class="form-input" placeholder="例: https://store.piascore.com/scores/xxxxxx" required>
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">楽譜カバー画像 URL</label>
+                <input type="url" id="sheetThumb" class="form-input" placeholder="https://images.unsplash.com/..." value="https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?q=80&w=800&auto=format&fit=crop">
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">楽譜説明文</label>
+                <textarea id="sheetDesc" class="form-textarea" rows="2" placeholder="右手メロディ五線譜・ドレミ音階・CDEコード付きワンコーラス楽譜。"></textarea>
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">仕様タグ（カンマ区切り）</label>
+                <input type="text" id="sheetSpecs" class="form-input" placeholder="右手五線譜, ドレミ付き, CDE表記, PDF即時DL" value="右手五線譜, ドレミ付き, CDE表記, PDF即時DL">
+              </div>
+            </div>
+            <div class="form-actions">
+              <div class="insert-pos-box">
+                <span>追加する位置：</span>
+                <input type="number" id="sheetInsertPos" class="insert-pos-input" min="1" value="1">
+                <span>番目</span>
+              </div>
+              <button type="submit" class="btn-add">
+                <i data-lucide="plus"></i>
+                <span>新しい楽譜をストアに追加する</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Items List -->
+        <div class="items-list" id="listSheets">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================
+         TAB 4: OTHER SECTION HEADERS (HERO, 01 FEATURES, 04 LAB APPS)
+         ======================================================================== -->
+    <div class="tab-panel" id="tab-sections">
+      <div class="section-card">
+        <div class="section-card-header">
+          <div>
+            <div class="card-title-group">
+              <i data-lucide="layout" class="card-icon"></i>
+              <h2 class="card-title">ヒーロー・01・04 テキスト管理</h2>
+            </div>
+            <p class="card-desc">ヒーローエリア、01 FEATURES、04 LAB APPS、ヘッダー、フッターのテキスト・見出し・説明文を編集できます。</p>
+          </div>
+        </div>
+
+        <!-- 0. Header Area Text Settings Form -->
+        <div class="add-form-box" style="margin-bottom: 28px; background: rgba(26, 26, 38, 0.7);">
+          <h3 style="font-size: 0.95rem; color: var(--gold-light); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="navigation" style="width:18px;height:18px;"></i>
+            ヘッダーエリア（Header Area）テキストのカスタマイズ
+          </h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">ヘッダー・ロゴテキスト（左側ロゴ名）</label>
+              <input type="text" id="headerLogoTitleInput" class="form-input" placeholder="MUSIC TECH LAB">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ヘッダー・サブタイトル（ロゴ右下の日本語）</label>
+              <input type="text" id="headerLogoTagInput" class="form-input" placeholder="最新アニソン&ゲーム音楽・ピアノCH">
+            </div>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--gold-light); opacity: 0.85; margin-top: 6px;">
+            ※ アイコン画像はそのまま維持され、テキストのみが即座に反映されます。
+          </p>
+        </div>
+
+        <!-- 1. Hero Area Text Settings Form -->
+        <div class="add-form-box" style="margin-bottom: 28px; background: rgba(26, 26, 38, 0.7);">
+          <h3 style="font-size: 0.95rem; color: var(--gold-light); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="sparkles" style="width:18px;height:18px;"></i>
+            ヒーローエリア（Hero Area）テキストのカスタマイズ
+          </h3>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label class="form-label">ヒーロー大見出し（メインタイトル）</label>
+              <input type="text" id="heroMainTitleInput" class="form-input" placeholder="最新アニソン＆ゲーム音楽・ピアノCH 【Music Tech Lab】">
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">ヒーロー小見出し / リード文</label>
+              <textarea id="heroTaglineInput" class="form-textarea" rows="2" placeholder="88鍵が描き出す、原曲の熱量とシネマティックな音響美学。&#10;最新アニメ・ゲームの名曲を、初心者から愛好家まで楽しめるハイブリッド仕様でお届けします。"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">画面最上部メタタグ（左上）</label>
+              <input type="text" id="heroMetaTagInput" class="form-input" placeholder="MUSIC TECH LAB / 最新アニソン＆ゲーム音楽・ピアノCH">
+            </div>
+            <div class="form-group">
+              <label class="form-label">サブメタタグ（最上部下）</label>
+              <input type="text" id="heroMetaSubInput" class="form-input" placeholder="ANIME & GAME MUSIC PIANO ARCHIVE">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ブランドピル（大見出し上）</label>
+              <input type="text" id="heroBrandPillInput" class="form-input" placeholder="OFFICIAL PIANO ARCHIVE">
+            </div>
+            <div class="form-group">
+              <label class="form-label">【実績バナー1（左）上側テキスト管理】</label>
+              <input type="text" id="heroStatLabel1Input" class="form-input" placeholder="TOTAL TRACKS">
+            </div>
+            <div class="form-group">
+              <label class="form-label">統計1: TOTAL TRACKS（下側数値）</label>
+              <input type="text" id="heroStatTotalInput" class="form-input" placeholder="130+ Works">
+            </div>
+            <div class="form-group">
+              <label class="form-label">【実績バナー2（中）上側テキスト管理】</label>
+              <input type="text" id="heroStatLabel2Input" class="form-input" placeholder="ARRANGEMENTS">
+            </div>
+            <div class="form-group">
+              <label class="form-label">統計2: ARRANGEMENTS（下側テキスト）</label>
+              <input type="text" id="heroStatArrangementsInput" class="form-input" placeholder="One-Chorus & Virtuoso">
+            </div>
+            <div class="form-group">
+              <label class="form-label">【実績バナー3（右）上側テキスト管理】</label>
+              <input type="text" id="heroStatLabel3Input" class="form-input" placeholder="AUDIO MASTERS">
+            </div>
+            <div class="form-group">
+              <label class="form-label">統計3: AUDIO MASTERS（下側テキスト）</label>
+              <input type="text" id="heroStatAudioInput" class="form-input" placeholder="Lossless High-Res">
+            </div>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--gold-light); opacity: 0.85; margin-top: 6px;">
+            ※ 画面下部の「サイトを更新する」ボタンを押すと、ヒーローエリアの各テキストに即座に反映されます。
+          </p>
+        </div>
+
+        <!-- 2. 01 FEATURES Section Text Settings Form -->
+        <div class="add-form-box" style="margin-bottom: 28px; background: rgba(26, 26, 38, 0.7);">
+          <h3 style="font-size: 0.95rem; color: var(--gold-light); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="layers" style="width:18px;height:18px;"></i>
+            01 FEATURES（動画のこだわり）見出し・カード・バナーのカスタマイズ
+          </h3>
+          <!-- セクション共通見出し -->
+          <div class="form-grid" style="margin-bottom: 20px;">
+            <div class="form-group">
+              <label class="form-label">バッジテキスト（ちっちゃい見出し）</label>
+              <input type="text" id="featuresSectionBadgeInput" class="form-input" placeholder="MULTI-LAYERED VISUAL SPECIFICATIONS">
+            </div>
+            <div class="form-group">
+              <label class="form-label">セクション大見出し</label>
+              <input type="text" id="featuresSectionTitleInput" class="form-input" placeholder="01 / FEATURES (動画のこだわり)">
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">セクション説明文 / リード文</label>
+              <textarea id="featuresSectionDescInput" class="form-textarea" rows="2" placeholder="歌える・学べる・弾ける。すべての動画に施された5層のマルチ情報。&#10;初心者から海外ファンまで、見るだけで演奏が深まる究極の映像仕様。"></textarea>
+            </div>
+          </div>
+
+          <!-- 5つのこだわりカード -->
+          <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
+            <!-- Card 1 -->
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(212,175,55,0.18); border-radius: 8px; padding: 14px 16px;">
+              <h4 style="color: var(--gold-light); font-size: 0.85rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <span style="background: var(--gold-gradient); color: #000; font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 3px;">01</span>
+                こだわりカード01（日本語歌詞）
+              </h4>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">バッジ</label>
+                  <input type="text" id="featCard1BadgeInput" class="form-input" placeholder="SING ALONG">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">英語タイトル</label>
+                  <input type="text" id="featCard1EnInput" class="form-input" placeholder="JAPANESE LYRICS">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">日本語タイトル</label>
+                  <input type="text" id="featCard1JaInput" class="form-input" placeholder="日本語歌詞">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">フッタータグ</label>
+                  <input type="text" id="featCard1TagInput" class="form-input" placeholder="ニュアンスが伝わる">
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">カード説明文</label>
+                  <textarea id="featCard1DescInput" class="form-textarea" rows="2" placeholder="一緒に歌える、原曲のニュアンスや感情がダイレクトに伝わる洗練された日本語歌詞。"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(212,175,55,0.18); border-radius: 8px; padding: 14px 16px;">
+              <h4 style="color: var(--gold-light); font-size: 0.85rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <span style="background: var(--gold-gradient); color: #000; font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 3px;">02</span>
+                こだわりカード02（アルファベット歌詞）
+              </h4>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">バッジ</label>
+                  <input type="text" id="featCard2BadgeInput" class="form-input" placeholder="GLOBAL FANS">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">英語タイトル</label>
+                  <input type="text" id="featCard2EnInput" class="form-input" placeholder="ROMAJI / ENGLISH LYRICS">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">日本語タイトル</label>
+                  <input type="text" id="featCard2JaInput" class="form-input" placeholder="アルファベット歌詞">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">フッタータグ</label>
+                  <input type="text" id="featCard2TagInput" class="form-input" placeholder="海外ファンも楽しめる">
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">カード説明文</label>
+                  <textarea id="featCard2DescInput" class="form-textarea" rows="2" placeholder="海外のファンも楽しめる英語・ローマ字歌詞。世界中どこからでも一緒に楽しめます。"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(212,175,55,0.18); border-radius: 8px; padding: 14px 16px;">
+              <h4 style="color: var(--gold-light); font-size: 0.85rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <span style="background: var(--gold-gradient); color: #000; font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 3px;">03</span>
+                こだわりカード03（ドレミ音階）
+              </h4>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">バッジ</label>
+                  <input type="text" id="featCard3BadgeInput" class="form-input" placeholder="EASY TO PLAY">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">英語タイトル</label>
+                  <input type="text" id="featCard3EnInput" class="form-input" placeholder="DO-RE-MI NOTATION">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">日本語タイトル</label>
+                  <input type="text" id="featCard3JaInput" class="form-input" placeholder="ドレミ音階">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">フッタータグ</label>
+                  <input type="text" id="featCard3TagInput" class="form-input" placeholder="初心者もすぐに弾ける">
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">カード説明文</label>
+                  <textarea id="featCard3DescInput" class="form-textarea" rows="2" placeholder="初心者でもパッと見てすぐに弾けるドレミの案内。鍵盤のどこを弾くか一目で分かります。"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(212,175,55,0.18); border-radius: 8px; padding: 14px 16px;">
+              <h4 style="color: var(--gold-light); font-size: 0.85rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <span style="background: var(--gold-gradient); color: #000; font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 3px;">04</span>
+                こだわりカード04（CDE音階）
+              </h4>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">バッジ</label>
+                  <input type="text" id="featCard4BadgeInput" class="form-input" placeholder="CHORD & THEORY">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">英語タイトル</label>
+                  <input type="text" id="featCard4EnInput" class="form-input" placeholder="C-D-E NOTATION">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">日本語タイトル</label>
+                  <input type="text" id="featCard4JaInput" class="form-input" placeholder="CDE音階">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">フッタータグ</label>
+                  <input type="text" id="featCard4TagInput" class="form-input" placeholder="国際基準で学べる">
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">カード説明文</label>
+                  <textarea id="featCard4DescInput" class="form-textarea" rows="2" placeholder="コードや国際基準で学べるアルファベット音階。ポピュラー音楽の理論やコード学習に最適。"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 5 -->
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(212,175,55,0.18); border-radius: 8px; padding: 14px 16px;">
+              <h4 style="color: var(--gold-light); font-size: 0.85rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <span style="background: var(--gold-gradient); color: #000; font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 3px;">05</span>
+                こだわりカード05（メロディ楽譜）
+              </h4>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">バッジ</label>
+                  <input type="text" id="featCard5BadgeInput" class="form-input" placeholder="PRACTICE COMPANION">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">英語タイトル</label>
+                  <input type="text" id="featCard5EnInput" class="form-input" placeholder="RIGHT-HAND SHEET MUSIC">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">日本語タイトル</label>
+                  <input type="text" id="featCard5JaInput" class="form-input" placeholder="メロディ楽譜">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">フッタータグ</label>
+                  <input type="text" id="featCard5TagInput" class="form-input" placeholder="動画を見ながら練習できる">
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">カード説明文</label>
+                  <textarea id="featCard5DescInput" class="form-textarea" rows="2" placeholder="右手の五線譜がついているから、動画を見ながら一緒に練習できる親切な設計。"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 横長デモバナー -->
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(212,175,55,0.28); border-radius: 8px; padding: 14px 16px;">
+            <h4 style="color: var(--gold-light); font-size: 0.85rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="layers" style="width:16px;height:16px;"></i>
+              横長デモバナー（5-IN-1 MULTI-SPECIFICATION）
+            </h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">ピルテキスト</label>
+                <input type="text" id="featBannerPillInput" class="form-input" placeholder="5-IN-1 MULTI-SPECIFICATION">
+              </div>
+              <div class="form-group">
+                <label class="form-label">見出し（通常文字）</label>
+                <input type="text" id="featBannerTitleInput" class="form-input" placeholder="観る・歌う・弾ける。">
+              </div>
+              <div class="form-group">
+                <label class="form-label">強調見出し（ゴールド文字）</label>
+                <input type="text" id="featBannerHighlightInput" class="form-input" placeholder="すべての動画が「練習＆鑑賞」のマルチ仕様。">
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">バナー説明文</label>
+                <textarea id="featBannerDescInput" class="form-textarea" rows="2" placeholder="ピアノの演奏映像に、日本語歌詞・アルファベット歌詞・ドレミ・CDE・右手五線譜の5つの情報レイヤーを美しく統合。&#10;ただ聴くだけでなく、弾きたい曲を自分のペースでマスターできる映像体験をお届けします。"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <p style="font-size: 0.75rem; color: var(--gold-light); opacity: 0.85; margin-top: 10px;">
+            ※ 画面下部の「サイトを更新する」ボタンを押すと、01 FEATURES セクションに即座に反映されます。
+          </p>
+        </div>
+
+        <!-- 3. 04 LAB APPS Section Text Settings Form -->
+        <div class="add-form-box" style="margin-bottom: 28px; background: rgba(26, 26, 38, 0.7);">
+          <h3 style="font-size: 0.95rem; color: var(--gold-light); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="cpu" style="width:18px;height:18px;"></i>
+            04 LAB APPS（開発アプリ）見出し・カード・バナーのカスタマイズ
+          </h3>
+          <!-- セクション共通見出し -->
+          <div class="form-grid" style="margin-bottom: 20px;">
+            <div class="form-group">
+              <label class="form-label">バッジテキスト（ちっちゃい見出し）</label>
+              <input type="text" id="labSectionBadgeInput" class="form-input" placeholder="POWERED BY GOOGLE ANTIGRAVITY & AI">
+            </div>
+            <div class="form-group">
+              <label class="form-label">セクション大見出し</label>
+              <input type="text" id="labSectionTitleInput" class="form-input" placeholder="04 / LAB APPS (開発アプリ)">
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">セクション説明文 / リード文</label>
+              <textarea id="labSectionDescInput" class="form-textarea" rows="2" placeholder="Google Antigravity × AIが加速させる、次世代の音楽テクノロジー開発。&#10;このWebサイトをはじめ、動画制作を革新するすべてのツールをAntigravity環境上で最速開発。"></textarea>
+            </div>
+          </div>
+
+          <!-- 横長デモバナー（NEXT-GEN PIPELINE） -->
+          <div style="background: rgba(212, 175, 55, 0.06); border: 1px solid var(--border-gold); border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+            <h4 style="color: var(--gold-primary); font-size: 0.9rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="sparkles" style="width:16px;height:16px;"></i>
+              横長ミッションバナー（Google Antigravity × AI）
+            </h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">バナーバッジ</label>
+                <input type="text" id="labHeroBadgeInput" class="form-input" placeholder="NEXT-GEN DEVELOPMENT PIPELINE">
+              </div>
+              <div class="form-group">
+                <label class="form-label">見出し（通常文字）</label>
+                <input type="text" id="labHeroTitleInput" class="form-input" placeholder="すべては、">
+              </div>
+              <div class="form-group">
+                <label class="form-label">強調見出し（ゴールド文字）</label>
+                <input type="text" id="labHeroHighlightInput" class="form-input" placeholder="Google Antigravity × 最先端AI と共に。">
+              </div>
+              <div class="form-group">
+                <label class="form-label">見出し下段</label>
+                <input type="text" id="labHeroSubtitleInput" class="form-input" placeholder="圧倒的なスピードで生み出される音楽プロダクト群。">
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">バナー説明文</label>
+                <textarea id="labHeroDescInput" class="form-textarea" rows="3" placeholder="当チャンネル「Music Tech Lab」のWebサイト自体はもちろん、動画内で活用しているビジュアライザーや歌詞同期アプリなど、すべてのプロダクトをGoogleが誇る次世代AI開発プラットフォーム「Google Antigravity」を活用して爆速構築しています。音楽と最先端テクノロジーの融合が、かつてない表現体験を切り拓きます。"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">統計1: 数値</label>
+                <input type="text" id="labHeroStat1NumInput" class="form-input" placeholder="AI-Native">
+              </div>
+              <div class="form-group">
+                <label class="form-label">統計1: ラベル</label>
+                <input type="text" id="labHeroStat1LabelInput" class="form-input" placeholder="Google Antigravity Driven">
+              </div>
+              <div class="form-group">
+                <label class="form-label">統計2: 数値</label>
+                <input type="text" id="labHeroStat2NumInput" class="form-input" placeholder="Ultra Fast">
+              </div>
+              <div class="form-group">
+                <label class="form-label">統計2: ラベル</label>
+                <input type="text" id="labHeroStat2LabelInput" class="form-input" placeholder="Rapid Iteration & Deploy">
+              </div>
+              <div class="form-group">
+                <label class="form-label">統計3: 数値</label>
+                <input type="text" id="labHeroStat3NumInput" class="form-input" placeholder="In The Lab">
+              </div>
+              <div class="form-group">
+                <label class="form-label">統計3: ラベル</label>
+                <input type="text" id="labHeroStat3LabelInput" class="form-input" placeholder="Multiple AI Tools Under Dev">
+              </div>
+            </div>
+          </div>
+
+          <!-- 4つの開発アプリカード（01〜04） -->
+          <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
+            <!-- Card 1 -->
+            <div style="background: rgba(255,255,255,0.025); border: 1px solid rgba(212,175,55,0.15); border-radius: 8px; padding: 14px 16px;">
+              <h4 style="color: var(--gold-light); font-size: 0.88rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <span style="background: var(--gold-gradient); color: #000; font-size: 0.72rem; font-weight: 700; padding: 1px 6px; border-radius: 3px;">01</span>
+                アプリカード01（オーディオビジュアライザー）
+              </h4>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">バッジ</label>
+                  <input type="text" id="labCard1BadgeInput" class="form-input" placeholder="VISUAL EFFECT TOOL">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">英語タイトル</label>
+                  <input type="text" id="labCard1EnInput" class="form-input" placeholder="Audio Visualizer">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">日本語タイトル</label>
+                  <input type="text" id="labCard1JaInput" class="form-input" placeholder="オーディオビジュアライザー">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ステータス文字</label>
+                  <input type="text" id="labCard1StatusInput" class="form-input" placeholder="Active in Production">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">技術タグ1</label>
+                  <input type="text" id="labCard1Tag1Input" class="form-input" placeholder="WebGL / Canvas">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">技術タグ2</label>
+                  <input type="text" id="labCard1Tag2Input" class="form-input" placeholder="Realtime FFT">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">技術タグ3</label>
+                  <input type="text" id="labCard1Tag3Input" class="form-input" placeholder="Antigravity Built">
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">説明文</label>
+                  <textarea id="labCard1DescInput" class="form-textarea" rows="2" placeholder="音楽の周波数波形や響きを美しくリアルタイム可視化するエフェクトツール。音の強弱に呼応するシネマティックな光彩パーティクルが、演奏動画の没入感を極限まで高めます。"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div style="background: rgba(255,255,255,0.025); border: 1px solid rgba(212,175,55,0.15); border-radius: 8px; padding: 14px 16px;">
+              <h4 style="color: var(--gold-light); font-size: 0.88rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <span style="background: var(--gold-gradient); color: #000; font-size: 0.72rem; font-weight: 700; padding: 1px 6px; border-radius: 3px;">02</span>
+                アプリカード02（同期型カラオケ歌詞アプリ）
+              </h4>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">バッジ</label>
+                  <input type="text" id="labCard2BadgeInput" class="form-input" placeholder="KARAOKE SYNC SYSTEM">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">英語タイトル</label>
+                  <input type="text" id="labCard2EnInput" class="form-input" placeholder="Lrc Sync App">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">日本語タイトル</label>
+                  <input type="text" id="labCard2JaInput" class="form-input" placeholder="同期型カラオケ歌詞アプリ">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ステータス文字</label>
+                  <input type="text" id="labCard2StatusInput" class="form-input" placeholder="Active in Production">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">技術タグ1</label>
+                  <input type="text" id="labCard2Tag1Input" class="form-input" placeholder="Spacebar Rhythm Input">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">技術タグ2</label>
+                  <input type="text" id="labCard2Tag2Input" class="form-input" placeholder="Smooth Color Flow">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">技術タグ3</label>
+                  <input type="text" id="labCard2Tag3Input" class="form-input" placeholder="Antigravity Built">
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">説明文</label>
+                  <textarea id="labCard2DescInput" class="form-textarea" rows="2" placeholder="スペースキーを曲に合わせてトントンと叩くだけで歌詞のタイムスタンプを直感的に記憶。カラオケのように歌詞の色が滑らかに変化する動画用テロップを即座に出力する次世代システム。"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div style="background: rgba(255,255,255,0.025); border: 1px solid rgba(212,175,55,0.15); border-radius: 8px; padding: 14px 16px;">
+              <h4 style="color: var(--gold-light); font-size: 0.88rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <span style="background: var(--gold-gradient); color: #000; font-size: 0.72rem; font-weight: 700; padding: 1px 6px; border-radius: 3px;">03</span>
+                アプリカード03（音波連動キャラクター）
+              </h4>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">バッジ</label>
+                  <input type="text" id="labCard3BadgeInput" class="form-input" placeholder="REACTIVE 2D/3D ANIMATION">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">英語タイトル</label>
+                  <input type="text" id="labCard3EnInput" class="form-input" placeholder="Sonic Avatars">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">日本語タイトル</label>
+                  <input type="text" id="labCard3JaInput" class="form-input" placeholder="音波連動キャラクター">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ステータス文字</label>
+                  <input type="text" id="labCard3StatusInput" class="form-input" placeholder="Active in Production">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">技術タグ1</label>
+                  <input type="text" id="labCard3Tag1Input" class="form-input" placeholder="Beat Reactive">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">技術タグ2</label>
+                  <input type="text" id="labCard3Tag2Input" class="form-input" placeholder="Animal Avatars">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">技術タグ3</label>
+                  <input type="text" id="labCard3Tag3Input" class="form-input" placeholder="Antigravity Built">
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">説明文</label>
+                  <textarea id="labCard3DescInput" class="form-textarea" rows="2" placeholder="音楽のビートやアタック音に合わせて、リアルタイムにリズミカルに踊り出す犬、猫、ウサギなどの愛らしい動物キャラクター群。動画画面を賑やかに彩るインタラクティブ演出。"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div style="background: rgba(255,255,255,0.025); border: 1px solid rgba(212,175,55,0.15); border-radius: 8px; padding: 14px 16px;">
+              <h4 style="color: var(--gold-light); font-size: 0.88rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <span style="background: var(--gold-gradient); color: #000; font-size: 0.72rem; font-weight: 700; padding: 1px 6px; border-radius: 3px;">04</span>
+                アプリカード04（次世代音楽AIツール群）
+              </h4>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">バッジ</label>
+                  <input type="text" id="labCard4BadgeInput" class="form-input" placeholder="FUTURE ECOSYSTEM">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">英語タイトル</label>
+                  <input type="text" id="labCard4EnInput" class="form-input" placeholder="Music AI Ecosystem">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">日本語タイトル</label>
+                  <input type="text" id="labCard4JaInput" class="form-input" placeholder="次世代音楽AIツール群">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ステータス文字</label>
+                  <input type="text" id="labCard4StatusInput" class="form-input" placeholder="In Active Development">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">技術タグ1</label>
+                  <input type="text" id="labCard4Tag1Input" class="form-input" placeholder="AI Audio Gen">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">技術タグ2</label>
+                  <input type="text" id="labCard4Tag2Input" class="form-input" placeholder="Harmonic Engine">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">技術タグ3</label>
+                  <input type="text" id="labCard4Tag3Input" class="form-input" placeholder="In Active R&D">
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">説明文</label>
+                  <textarea id="labCard4DescInput" class="form-textarea" rows="2" placeholder="自動楽譜認識・伴奏生成・音源分離など、多数の音楽AIツールをGoogle Antigravity上で現在鋭意開発中。テクノロジーで音楽表現の未来を拡張し続けます。"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p style="font-size: 0.75rem; color: var(--gold-light); opacity: 0.85; margin-top: 6px;">
+            ※ 画面下部の「サイトを更新する」ボタンを押すと、04 LAB APPS セクションに即座に反映されます。
+          </p>
+        </div>
+
+        <!-- 4. Footer Area Text Settings Form -->
+        <div class="add-form-box" style="margin-bottom: 28px; background: rgba(26, 26, 38, 0.7);">
+          <h3 style="font-size: 0.95rem; color: var(--gold-light); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="compass" style="width:18px;height:18px;"></i>
+            フッターエリア（Footer Area）見出し・説明文のカスタマイズ
+          </h3>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label class="form-label">フッター・ロゴテキスト（左上ロゴ名）</label>
+              <input type="text" id="footerChannelTitleInput" class="form-input" placeholder="MUSIC TECH LAB">
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">フッター日本語見出し（左側ロゴ下）</label>
+              <input type="text" id="footerLogoTagInput" class="form-input" placeholder="最新アニソン&ゲーム音楽・ピアノCH">
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">フッター英語文章 / モットー（左側説明文）</label>
+              <textarea id="footerMottoInput" class="form-textarea" rows="2" placeholder="Latest Anime & Game Music Meets Modern Piano Resonance."></textarea>
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">フッター最下部・1つ目の文章（コピーライト）</label>
+              <textarea id="footerCopyrightInput" class="form-textarea" rows="2" placeholder="© 2025 MUSIC TECH LAB 【最新アニソン&ゲーム音楽・ピアノCH】. All Rights Reserved."></textarea>
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">フッター最下部・2つ目の文章（クレジット）</label>
+              <input type="text" id="footerDesignedByInput" class="form-input" placeholder="Crafted for Cinematic Music Experiences">
+            </div>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--gold-light); opacity: 0.85; margin-top: 6px;">
+            ※ 画面下部の「サイトを更新する」ボタンを押すと、フッターの各テキストに即座に反映されます。
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- --------------------------------------------------------------------------
+       3. STICKY BOTTOM SAVE ACTION BAR
+       -------------------------------------------------------------------------- -->
+  <div class="save-bar">
+    <div class="save-bar-inner">
+      <div class="save-status-text">
+        <span class="status-dot"></span>
+        <span id="saveStatusMsg">編集内容は未保存です。完了したら「サイトを更新する」を押してください。</span>
+      </div>
+
+      <div class="save-actions">
+        <button type="button" class="btn-reset" id="btnResetDefault" title="初期デモデータに戻す">
+          <span>初期データにリセット</span>
+        </button>
+
+        <!-- 2つのボタンの間の隙間に直接新設：メンテナンスモードON/OFF切り替えトグルボタン -->
+        <button type="button" class="maintenance-inline-toggle" id="btnMaintenanceToggle" role="switch" aria-checked="false" title="クリックでメンテナンスモードのON/OFFを即座に切り替えます">
+          <div class="toggle-switch-track">
+            <div class="toggle-switch-thumb"></div>
+          </div>
+          <span class="maintenance-state-pill" id="maintenanceStatusBadge">OFF</span>
+          <span id="maintenanceBtnLabel">【 サイトをメンテナンス中にする（世界中のアクセスを一時遮断）】</span>
+        </button>
+
+        <button type="button" class="btn-save-main" id="btnSaveAll">
+          <i data-lucide="check-circle" style="width:18px;height:18px;"></i>
+          <span>サイトを更新する (SAVE & PUBLISH)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="adminToast">
+    <i data-lucide="check" class="toast-icon"></i>
+    <span id="toastText">更新が完了しました！</span>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/demo-data.js"></script>
+  <script>
+    // ------------------------------------------------------------------------
+    // PASSWORD AUTHENTICATION GATEWAY
+    // ------------------------------------------------------------------------
+    const AUTH_PASS = '1234';
+    const authOverlay = document.getElementById('authOverlay');
+    const authForm = document.getElementById('authForm');
+    const authPassword = document.getElementById('authPassword');
+    const authError = document.getElementById('authError');
+    const btnLogout = document.getElementById('btnLogout');
+
+    // Check existing session
+    if (sessionStorage.getItem('piano_admin_logged_in') === 'true') {
+      authOverlay.classList.add('is-hidden');
+    }
+
+    authForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = authPassword.value.trim();
+      if (val === AUTH_PASS) {
+        sessionStorage.setItem('piano_admin_logged_in', 'true');
+        authOverlay.classList.add('is-hidden');
+        authError.style.display = 'none';
+        showToast('認証に成功しました。管理画面へようこそ！');
+      } else {
+        authError.style.display = 'block';
+        authPassword.value = '';
+        authPassword.focus();
+      }
+    });
+
+    btnLogout.addEventListener('click', () => {
+      sessionStorage.removeItem('piano_admin_logged_in');
+      authOverlay.classList.remove('is-hidden');
+      authPassword.value = '';
+      authPassword.focus();
+    });
+
+    // ------------------------------------------------------------------------
+    // DATA STORE STATE & REAL-TIME SYNC (PORT 8888)
+    // ------------------------------------------------------------------------
+    const SYNC_PORT = 8888;
+    function getSyncApiUrl(endpoint) {
+      const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+      const hostname = window.location.hostname || 'localhost';
+      const port = window.location.port || SYNC_PORT;
+      return `${protocol}//${hostname}:${port}${endpoint}`;
+    }
+
+    async function syncFromServerBeforeLoad() {
+      try {
+        const res = await fetch(getSyncApiUrl('/api/sync'));
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.success && json.data) {
+            for (const [key, value] of Object.entries(json.data)) {
+              if (value !== undefined && value !== null) {
+                localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[Admin Sync] Server port 8888 fetch skipped (offline fallback):', e);
+      }
+      loadState();
+    }
+
+    let state = {
+      regularVideos: [],
+      shortsVideos: [],
+      sheets: []
+    };
+
+    function loadState() {
+      const demo = window.DEMO_DATA || { regularVideos: [], shortsVideos: [], sheets: [] };
+
+      try {
+        const savedReg = localStorage.getItem('piano_cinema_custom_channel_a');
+        const parsedReg = savedReg ? JSON.parse(savedReg) : [...demo.regularVideos];
+        state.regularVideos = parsedReg.map(v => {
+          const cleanId = extractYouTubeId(v.youtubeId || v.id) || v.youtubeId;
+          return {
+            ...v,
+            youtubeId: cleanId,
+            thumbnail: (v.thumbnail && !v.thumbnail.includes('/vi/http')) ? v.thumbnail : `https://img.youtube.com/vi/${cleanId}/maxresdefault.jpg`
+          };
+        });
+      } catch (e) { state.regularVideos = [...demo.regularVideos]; }
+
+      try {
+        const savedSht = localStorage.getItem('piano_cinema_custom_channel_b');
+        const parsedSht = savedSht ? JSON.parse(savedSht) : [...demo.shortsVideos];
+        state.shortsVideos = parsedSht.map(v => {
+          const cleanId = extractYouTubeId(v.youtubeId || v.id) || v.youtubeId;
+          return {
+            ...v,
+            youtubeId: cleanId,
+            thumbnail: (v.thumbnail && !v.thumbnail.includes('/vi/http')) ? v.thumbnail : `https://img.youtube.com/vi/${cleanId}/hqdefault.jpg`
+          };
+        });
+      } catch (e) { state.shortsVideos = [...demo.shortsVideos]; }
+
+      try {
+        const savedSheets = localStorage.getItem('piano_cinema_custom_sheets');
+        const parsedSheets = savedSheets ? JSON.parse(savedSheets) : [...(demo.sheets || [])];
+        state.sheets = parsedSheets.map(s => ({
+          ...s,
+          titleColor: s.titleColor || '#ffffff'
+        }));
+      } catch (e) {
+        state.sheets = [...(demo.sheets || [])].map(s => ({ ...s, titleColor: s.titleColor || '#ffffff' }));
+      }
+
+      // 00 HERO エリア テキスト情報の読み込みと反映
+      try {
+        const defaultHeroInfo = {
+          title: '最新アニソン＆ゲーム音楽・ピアノCH 【Music Tech Lab】',
+          tagline: '88鍵が描き出す、原曲の熱量とシネマティックな音響美学。\n最新アニメ・ゲームの名曲を、初心者から愛好家まで楽しめるハイブリッド仕様でお届けします。',
+          metaTag: 'MUSIC TECH LAB / 最新アニソン＆ゲーム音楽・ピアノCH',
+          metaSub: 'ANIME & GAME MUSIC PIANO ARCHIVE',
+          brandPill: 'OFFICIAL PIANO ARCHIVE',
+          statLabel1: 'TOTAL TRACKS',
+          statTotal: '130+ Works',
+          statLabel2: 'ARRANGEMENTS',
+          statArrangements: 'One-Chorus & Virtuoso',
+          statLabel3: 'AUDIO MASTERS',
+          statAudio: 'Lossless High-Res'
+        };
+        const savedHeroInfo = localStorage.getItem('piano_cinema_custom_hero_info');
+        const heroInfo = savedHeroInfo ? { ...defaultHeroInfo, ...JSON.parse(savedHeroInfo) } : defaultHeroInfo;
+
+        const heroTitle = document.getElementById('heroMainTitleInput');
+        if (heroTitle) heroTitle.value = heroInfo.title || '';
+        const heroTagline = document.getElementById('heroTaglineInput');
+        if (heroTagline) heroTagline.value = heroInfo.tagline || '';
+        const heroMetaTag = document.getElementById('heroMetaTagInput');
+        if (heroMetaTag) heroMetaTag.value = heroInfo.metaTag || '';
+        const heroMetaSub = document.getElementById('heroMetaSubInput');
+        if (heroMetaSub) heroMetaSub.value = heroInfo.metaSub || '';
+        const heroBrandPill = document.getElementById('heroBrandPillInput');
+        if (heroBrandPill) heroBrandPill.value = heroInfo.brandPill || '';
+        const heroStatLabel1 = document.getElementById('heroStatLabel1Input');
+        if (heroStatLabel1) heroStatLabel1.value = heroInfo.statLabel1 || 'TOTAL TRACKS';
+        const heroStatTotal = document.getElementById('heroStatTotalInput');
+        if (heroStatTotal) heroStatTotal.value = heroInfo.statTotal || '';
+        const heroStatLabel2 = document.getElementById('heroStatLabel2Input');
+        if (heroStatLabel2) heroStatLabel2.value = heroInfo.statLabel2 || 'ARRANGEMENTS';
+        const heroStatArrangements = document.getElementById('heroStatArrangementsInput');
+        if (heroStatArrangements) heroStatArrangements.value = heroInfo.statArrangements || '';
+        const heroStatLabel3 = document.getElementById('heroStatLabel3Input');
+        if (heroStatLabel3) heroStatLabel3.value = heroInfo.statLabel3 || 'AUDIO MASTERS';
+        const heroStatAudio = document.getElementById('heroStatAudioInput');
+        if (heroStatAudio) heroStatAudio.value = heroInfo.statAudio || '';
+      } catch (e) {
+        console.warn('Failed to load hero info in admin:', e);
+      }
+
+      // 01 FEATURES テキスト情報の読み込みと反映
+      try {
+        const defaultFeaturesInfo = {
+          badge: 'MULTI-LAYERED VISUAL SPECIFICATIONS',
+          title: '01 / FEATURES (動画のこだわり)',
+          desc: '歌える・学べる・弾ける。すべての動画に施された5層のマルチ情報。\n初心者から海外ファンまで、見るだけで演奏が深まる究極の映像仕様。',
+          card1Badge: 'SING ALONG',
+          card1En: 'JAPANESE LYRICS',
+          card1Ja: '日本語歌詞',
+          card1Desc: '一緒に歌える、原曲のニュアンスや感情がダイレクトに伝わる洗練された日本語歌詞。',
+          card1Tag: 'ニュアンスが伝わる',
+          card2Badge: 'GLOBAL FANS',
+          card2En: 'ROMAJI / ENGLISH LYRICS',
+          card2Ja: 'アルファベット歌詞',
+          card2Desc: '海外のファンも楽しめる英語・ローマ字歌詞。世界中どこからでも一緒に楽しめます。',
+          card2Tag: '海外ファンも楽しめる',
+          card3Badge: 'EASY TO PLAY',
+          card3En: 'DO-RE-MI NOTATION',
+          card3Ja: 'ドレミ音階',
+          card3Desc: '初心者でもパッと見てすぐに弾けるドレミの案内。鍵盤のどこを弾くか一目で分かります。',
+          card3Tag: '初心者もすぐに弾ける',
+          card4Badge: 'CHORD & THEORY',
+          card4En: 'C-D-E NOTATION',
+          card4Ja: 'CDE音階',
+          card4Desc: 'コードや国際基準で学べるアルファベット音階。ポピュラー音楽の理論やコード学習に最適。',
+          card4Tag: '国際基準で学べる',
+          card5Badge: 'PRACTICE COMPANION',
+          card5En: 'RIGHT-HAND SHEET MUSIC',
+          card5Ja: 'メロディ楽譜',
+          card5Desc: '右手の五線譜がついているから、動画を見ながら一緒に練習できる親切な設計。',
+          card5Tag: '動画を見ながら練習できる',
+          bannerPill: '5-IN-1 MULTI-SPECIFICATION',
+          bannerTitle: '観る・歌う・弾ける。',
+          bannerHighlight: 'すべての動画が「練習＆鑑賞」のマルチ仕様。',
+          bannerDesc: 'ピアノの演奏映像に、日本語歌詞・アルファベット歌詞・ドレミ・CDE・右手五線譜の5つの情報レイヤーを美しく統合。\nただ聴くだけでなく、弾きたい曲を自分のペースでマスターできる映像体験をお届けします。'
+        };
+        const savedFeatInfo = localStorage.getItem('piano_cinema_custom_features_info');
+        const featInfo = savedFeatInfo ? { ...defaultFeaturesInfo, ...JSON.parse(savedFeatInfo) } : defaultFeaturesInfo;
+
+        const featBadge = document.getElementById('featuresSectionBadgeInput');
+        if (featBadge) featBadge.value = featInfo.badge || '';
+        const featTitle = document.getElementById('featuresSectionTitleInput');
+        if (featTitle) featTitle.value = featInfo.title || '';
+        const featDesc = document.getElementById('featuresSectionDescInput');
+        if (featDesc) featDesc.value = featInfo.desc || '';
+
+        for (let i = 1; i <= 5; i++) {
+          const b = document.getElementById(`featCard${i}BadgeInput`);
+          if (b) b.value = featInfo[`card${i}Badge`] || '';
+          const en = document.getElementById(`featCard${i}EnInput`);
+          if (en) en.value = featInfo[`card${i}En`] || '';
+          const ja = document.getElementById(`featCard${i}JaInput`);
+          if (ja) ja.value = featInfo[`card${i}Ja`] || '';
+          const desc = document.getElementById(`featCard${i}DescInput`);
+          if (desc) desc.value = featInfo[`card${i}Desc`] || '';
+          const tag = document.getElementById(`featCard${i}TagInput`);
+          if (tag) tag.value = featInfo[`card${i}Tag`] || '';
+        }
+
+        const pPill = document.getElementById('featBannerPillInput');
+        if (pPill) pPill.value = featInfo.bannerPill || '';
+        const pTitle = document.getElementById('featBannerTitleInput');
+        if (pTitle) pTitle.value = featInfo.bannerTitle || '';
+        const pHl = document.getElementById('featBannerHighlightInput');
+        if (pHl) pHl.value = featInfo.bannerHighlight || '';
+        const pDesc = document.getElementById('featBannerDescInput');
+        if (pDesc) pDesc.value = featInfo.bannerDesc || '';
+      } catch (e) {
+        console.warn('Failed to load features section info in admin:', e);
+      }
+
+      // 02 MAIN COVERS テキスト情報の読み込みと反映
+      try {
+        const defaultRegularInfo = {
+          badge: 'FULL HARMONIC ARRANGEMENTS',
+          title: '02 / MAIN COVERS (ワンコーラス)',
+          desc: 'じっくり聴かせる、原曲の魅力を凝縮したワンコーラス演奏。\nMelodic Depth & Dynamic Range — ピアノならではの豊かな響きを味わうメイン動画。',
+          youtubeUrl: ''
+        };
+        const savedRegInfo = localStorage.getItem('piano_cinema_custom_regular_info');
+        const regInfo = savedRegInfo ? { ...defaultRegularInfo, ...JSON.parse(savedRegInfo) } : defaultRegularInfo;
+
+        const regBadge = document.getElementById('regSectionBadgeInput');
+        if (regBadge) regBadge.value = regInfo.badge || '';
+        const regTitle = document.getElementById('regSectionTitleInput');
+        if (regTitle) regTitle.value = regInfo.title || '';
+        const regYtUrl = document.getElementById('regYoutubeUrlInput');
+        if (regYtUrl) regYtUrl.value = regInfo.youtubeUrl || '';
+        const regDesc = document.getElementById('regSectionDescInput');
+        if (regDesc) regDesc.value = regInfo.desc || '';
+      } catch (e) {
+        console.warn('Failed to load regular section info in admin:', e);
+      }
+
+      // 03 SHORTS テキスト情報の読み込みと反映
+      try {
+        const defaultShortsInfo = {
+          badge: 'CHORUS HIGHLIGHTS IN 60s',
+          title: '03 / SHORTS (サビだけ弾いてみた)',
+          desc: 'サビの爆発力を1分に凝縮した、疾走感あるショート動画。\nInstant Climax & Finger Speed — スマホに最適化された縦長ショート演奏。',
+          youtubeUrl: ''
+        };
+        const savedShtInfo = localStorage.getItem('piano_cinema_custom_shorts_info');
+        const shtInfo = savedShtInfo ? { ...defaultShortsInfo, ...JSON.parse(savedShtInfo) } : defaultShortsInfo;
+
+        const shtBadge = document.getElementById('shtSectionBadgeInput');
+        if (shtBadge) shtBadge.value = shtInfo.badge || '';
+        const shtTitle = document.getElementById('shtSectionTitleInput');
+        if (shtTitle) shtTitle.value = shtInfo.title || '';
+        const shtYtUrl = document.getElementById('shtYoutubeUrlInput');
+        if (shtYtUrl) shtYtUrl.value = shtInfo.youtubeUrl || '';
+        const shtDesc = document.getElementById('shtSectionDescInput');
+        if (shtDesc) shtDesc.value = shtInfo.desc || '';
+      } catch (e) {
+        console.warn('Failed to load shorts section info in admin:', e);
+      }
+
+      // 04 LAB APPS テキスト情報の読み込みと反映
+      try {
+        const defaultLabInfo = {
+          badge: 'POWERED BY GOOGLE ANTIGRAVITY & AI',
+          title: '04 / LAB APPS (開発アプリ)',
+          desc: 'Google Antigravity × AIが加速させる、次世代の音楽テクノロジー開発。\nこのWebサイトをはじめ、動画制作を革新するすべてのツールをAntigravity環境上で最速開発。',
+          heroBadge: 'NEXT-GEN DEVELOPMENT PIPELINE',
+          heroTitle: 'すべては、',
+          heroHighlight: 'Google Antigravity × 最先端AI と共に。',
+          heroSubtitle: '圧倒的なスピードで生み出される音楽プロダクト群。',
+          heroDesc: '当チャンネル「Music Tech Lab」のWebサイト自体はもちろん、動画内で活用しているビジュアライザーや歌詞同期アプリなど、すべてのプロダクトをGoogleが誇る次世代AI開発プラットフォーム「Google Antigravity」を活用して爆速構築しています。音楽と最先端テクノロジーの融合が、かつてない表現体験を切り拓きます。',
+          heroStat1Num: 'AI-Native',
+          heroStat1Label: 'Google Antigravity Driven',
+          heroStat2Num: 'Ultra Fast',
+          heroStat2Label: 'Rapid Iteration & Deploy',
+          heroStat3Num: 'In The Lab',
+          heroStat3Label: 'Multiple AI Tools Under Dev',
+          card1Badge: 'VISUAL EFFECT TOOL',
+          card1En: 'Audio Visualizer',
+          card1Ja: 'オーディオビジュアライザー',
+          card1Desc: '音楽の周波数波形や響きを美しくリアルタイム可視化するエフェクトツール。音の強弱に呼応するシネマティックな光彩パーティクルが、演奏動画の没入感を極限まで高めます。',
+          card1Tag1: 'WebGL / Canvas',
+          card1Tag2: 'Realtime FFT',
+          card1Tag3: 'Antigravity Built',
+          card1Status: 'Active in Production',
+          card2Badge: 'KARAOKE SYNC SYSTEM',
+          card2En: 'Lrc Sync App',
+          card2Ja: '同期型カラオケ歌詞アプリ',
+          card2Desc: 'スペースキーを曲に合わせてトントンと叩くだけで歌詞のタイムスタンプを直感的に記憶。カラオケのように歌詞の色が滑らかに変化する動画用テロップを即座に出力する次世代システム。',
+          card2Tag1: 'Spacebar Rhythm Input',
+          card2Tag2: 'Smooth Color Flow',
+          card2Tag3: 'Antigravity Built',
+          card2Status: 'Active in Production',
+          card3Badge: 'REACTIVE 2D/3D ANIMATION',
+          card3En: 'Sonic Avatars',
+          card3Ja: '音波連動キャラクター',
+          card3Desc: '音楽のビートやアタック音に合わせて、リアルタイムにリズミカルに踊り出す犬、猫、ウサギなどの愛らしい動物キャラクター群。動画画面を賑やかに彩るインタラクティブ演出。',
+          card3Tag1: 'Beat Reactive',
+          card3Tag2: 'Animal Avatars',
+          card3Tag3: 'Antigravity Built',
+          card3Status: 'Active in Production',
+          card4Badge: 'FUTURE ECOSYSTEM',
+          card4En: 'Music AI Ecosystem',
+          card4Ja: '次世代音楽AIツール群',
+          card4Desc: '自動楽譜認識・伴奏生成・音源分離など、多数の音楽AIツールをGoogle Antigravity上で現在鋭意開発中。テクノロジーで音楽表現の未来を拡張し続けます。',
+          card4Tag1: 'AI Audio Gen',
+          card4Tag2: 'Harmonic Engine',
+          card4Tag3: 'In Active R&D',
+          card4Status: 'In Active Development'
+        };
+        const savedLabInfo = localStorage.getItem('piano_cinema_custom_lab_info');
+        const labInfo = savedLabInfo ? { ...defaultLabInfo, ...JSON.parse(savedLabInfo) } : defaultLabInfo;
+
+        const labBadge = document.getElementById('labSectionBadgeInput');
+        if (labBadge) labBadge.value = labInfo.badge || '';
+        const labTitle = document.getElementById('labSectionTitleInput');
+        if (labTitle) labTitle.value = labInfo.title || '';
+        const labDesc = document.getElementById('labSectionDescInput');
+        if (labDesc) labDesc.value = labInfo.desc || '';
+
+        const labHeroBadge = document.getElementById('labHeroBadgeInput');
+        if (labHeroBadge) labHeroBadge.value = labInfo.heroBadge || '';
+        const labHeroTitle = document.getElementById('labHeroTitleInput');
+        if (labHeroTitle) labHeroTitle.value = labInfo.heroTitle || '';
+        const labHeroHighlight = document.getElementById('labHeroHighlightInput');
+        if (labHeroHighlight) labHeroHighlight.value = labInfo.heroHighlight || '';
+        const labHeroSubtitle = document.getElementById('labHeroSubtitleInput');
+        if (labHeroSubtitle) labHeroSubtitle.value = labInfo.heroSubtitle || '';
+        const labHeroDesc = document.getElementById('labHeroDescInput');
+        if (labHeroDesc) labHeroDesc.value = labInfo.heroDesc || '';
+
+        const labHeroStat1Num = document.getElementById('labHeroStat1NumInput');
+        if (labHeroStat1Num) labHeroStat1Num.value = labInfo.heroStat1Num || '';
+        const labHeroStat1Label = document.getElementById('labHeroStat1LabelInput');
+        if (labHeroStat1Label) labHeroStat1Label.value = labInfo.heroStat1Label || '';
+        const labHeroStat2Num = document.getElementById('labHeroStat2NumInput');
+        if (labHeroStat2Num) labHeroStat2Num.value = labInfo.heroStat2Num || '';
+        const labHeroStat2Label = document.getElementById('labHeroStat2LabelInput');
+        if (labHeroStat2Label) labHeroStat2Label.value = labInfo.heroStat2Label || '';
+        const labHeroStat3Num = document.getElementById('labHeroStat3NumInput');
+        if (labHeroStat3Num) labHeroStat3Num.value = labInfo.heroStat3Num || '';
+        const labHeroStat3Label = document.getElementById('labHeroStat3LabelInput');
+        if (labHeroStat3Label) labHeroStat3Label.value = labInfo.heroStat3Label || '';
+
+        for (let i = 1; i <= 4; i++) {
+          const b = document.getElementById(`labCard${i}BadgeInput`);
+          if (b) b.value = labInfo[`card${i}Badge`] || '';
+          const en = document.getElementById(`labCard${i}EnInput`);
+          if (en) en.value = labInfo[`card${i}En`] || '';
+          const ja = document.getElementById(`labCard${i}JaInput`);
+          if (ja) ja.value = labInfo[`card${i}Ja`] || '';
+          const status = document.getElementById(`labCard${i}StatusInput`);
+          if (status) status.value = labInfo[`card${i}Status`] || '';
+          const tag1 = document.getElementById(`labCard${i}Tag1Input`);
+          if (tag1) tag1.value = labInfo[`card${i}Tag1`] || '';
+          const tag2 = document.getElementById(`labCard${i}Tag2Input`);
+          if (tag2) tag2.value = labInfo[`card${i}Tag2`] || '';
+          const tag3 = document.getElementById(`labCard${i}Tag3Input`);
+          if (tag3) tag3.value = labInfo[`card${i}Tag3`] || '';
+          const desc = document.getElementById(`labCard${i}DescInput`);
+          if (desc) desc.value = labInfo[`card${i}Desc`] || '';
+        }
+      } catch (e) {
+        console.warn('Failed to load lab section info in admin:', e);
+      }
+
+      // 05 STORE テキスト情報の読み込みと反映
+      try {
+        const defaultStoreInfo = {
+          sectionDesc: '動画で使用しているオリジナルピアノ楽譜をPiascore（ピアスコア）にて好評配信中。\n購入後すぐにPDFでダウンロード＆印刷可能です。',
+          bannerTitle: '動画を見ながら一緒に弾ける。',
+          bannerHighlight: '公式オリジナルピアノ楽譜。',
+          bannerDesc: '当チャンネルの動画内で演奏しているアレンジをそのまま完全再現したオリジナルピアノ楽譜です。国内最大級の楽譜配信プラットフォーム「Piascore」にて安全に即時ダウンロードいただけます。',
+          publisherUrl: '',
+          guideDesc: 'Piascoreで購入いただいた楽譜は、iPad・iPhone・Android・パソコンですぐに閲覧・印刷いただけます。Piascoreアプリの自動譜めくり機能や書き込み機能にも完全対応しています。'
+        };
+        const savedStore = localStorage.getItem('piano_cinema_custom_store_info');
+        const storeInfo = savedStore ? { ...defaultStoreInfo, ...JSON.parse(savedStore) } : defaultStoreInfo;
+
+        const secDesc = document.getElementById('storeSectionDescInput');
+        if (secDesc) secDesc.value = storeInfo.sectionDesc || '';
+        const banTitle = document.getElementById('storeBannerTitleInput');
+        if (banTitle) banTitle.value = storeInfo.bannerTitle || '';
+        const banHl = document.getElementById('storeBannerHighlightInput');
+        if (banHl) banHl.value = storeInfo.bannerHighlight || '';
+        const banDesc = document.getElementById('storeBannerDescInput');
+        if (banDesc) banDesc.value = storeInfo.bannerDesc || '';
+        const pubUrl = document.getElementById('storePublisherUrlInput');
+        if (pubUrl) pubUrl.value = storeInfo.publisherUrl || '';
+        const guideDesc = document.getElementById('storeGuideDescInput');
+        if (guideDesc) guideDesc.value = storeInfo.guideDesc || '';
+      } catch (e) {
+        console.warn('Failed to load store info in admin:', e);
+      }
+
+      // 00 HEADER テキスト情報の読み込みと反映
+      try {
+        const defaultHeaderInfo = {
+          title: 'MUSIC TECH LAB',
+          tag: '最新アニソン&ゲーム音楽・ピアノCH'
+        };
+        const savedHeader = localStorage.getItem('piano_cinema_custom_header_info');
+        const headerInfo = savedHeader ? { ...defaultHeaderInfo, ...JSON.parse(savedHeader) } : defaultHeaderInfo;
+
+        const headerTitle = document.getElementById('headerLogoTitleInput');
+        if (headerTitle) headerTitle.value = headerInfo.title || '';
+        const headerTag = document.getElementById('headerLogoTagInput');
+        if (headerTag) headerTag.value = headerInfo.tag || '';
+      } catch (e) {
+        console.warn('Failed to load header info in admin:', e);
+      }
+
+      // 06 FOOTER テキスト情報の読み込みと反映
+      try {
+        const defaultFooterInfo = {
+          title: 'MUSIC TECH LAB',
+          logoTag: '最新アニソン&ゲーム音楽・ピアノCH',
+          motto: 'Latest Anime & Game Music Meets Modern Piano Resonance.',
+          copyright: '© 2025 MUSIC TECH LAB 【最新アニソン&ゲーム音楽・ピアノCH】. All Rights Reserved.',
+          designedBy: 'Crafted for Cinematic Music Experiences'
+        };
+        const savedFooter = localStorage.getItem('piano_cinema_custom_footer_info');
+        const footerInfo = savedFooter ? { ...defaultFooterInfo, ...JSON.parse(savedFooter) } : defaultFooterInfo;
+
+        const footerTitle = document.getElementById('footerChannelTitleInput');
+        if (footerTitle) footerTitle.value = footerInfo.title || '';
+        const footerTag = document.getElementById('footerLogoTagInput');
+        if (footerTag) footerTag.value = footerInfo.logoTag || '';
+        const footerMotto = document.getElementById('footerMottoInput');
+        if (footerMotto) footerMotto.value = footerInfo.motto || '';
+        const footerCopyright = document.getElementById('footerCopyrightInput');
+        if (footerCopyright) footerCopyright.value = footerInfo.copyright || '';
+        const footerDesignedBy = document.getElementById('footerDesignedByInput');
+        if (footerDesignedBy) footerDesignedBy.value = footerInfo.designedBy || '';
+      } catch (e) {
+        console.warn('Failed to load footer info in admin:', e);
+      }
+
+      renderAll();
+    }
+
+    function saveState() {
+      // 保存前に全ての動画IDとサムネイルを確実にサニタイズ
+      state.regularVideos = state.regularVideos.map(v => {
+        const cleanId = extractYouTubeId(v.youtubeId || v.id) || v.youtubeId;
+        return {
+          ...v,
+          youtubeId: cleanId,
+          thumbnail: (v.thumbnail && !v.thumbnail.includes('/vi/http')) ? v.thumbnail : `https://img.youtube.com/vi/${cleanId}/maxresdefault.jpg`
+        };
+      });
+
+      state.shortsVideos = state.shortsVideos.map(v => {
+        const cleanId = extractYouTubeId(v.youtubeId || v.id) || v.youtubeId;
+        return {
+          ...v,
+          youtubeId: cleanId,
+          thumbnail: (v.thumbnail && !v.thumbnail.includes('/vi/http')) ? v.thumbnail : `https://img.youtube.com/vi/${cleanId}/hqdefault.jpg`
+        };
+      });
+
+      // クライアント様が管理パネルから入力されたテキスト（空白スペース・改行含む）を1ミリも削らず素直に出力・保存するヘルパー
+      const getRawVal = (id, fallback) => {
+        const el = document.getElementById(id);
+        if (!el) return fallback;
+        const v = el.value;
+        return (v !== undefined && v !== null && v !== '') ? v : fallback;
+      };
+
+      // 00 HEADER エリアのテキスト情報の保存
+      const headerInfo = {
+        title: getRawVal('headerLogoTitleInput', 'MUSIC TECH LAB'),
+        tag: getRawVal('headerLogoTagInput', '最新アニソン&ゲーム音楽・ピアノCH')
+      };
+
+      // 00 HERO エリアのテキスト情報の保存（管理パネル入力通り100%素直に保存）
+      const heroInfo = {
+        title: getRawVal('heroMainTitleInput', '最新アニソン＆ゲーム音楽・ピアノCH 【Music Tech Lab】'),
+        tagline: getRawVal('heroTaglineInput', '88鍵が描き出す、原曲の熱量とシネマティックな音響美学。\n最新アニメ・ゲームの名曲を、初心者から愛好家まで楽しめるハイブリッド仕様でお届けします。'),
+        metaTag: getRawVal('heroMetaTagInput', 'MUSIC TECH LAB / 最新アニソン＆ゲーム音楽・ピアノCH'),
+        metaSub: getRawVal('heroMetaSubInput', 'ANIME & GAME MUSIC PIANO ARCHIVE'),
+        brandPill: getRawVal('heroBrandPillInput', 'OFFICIAL PIANO ARCHIVE'),
+        statLabel1: getRawVal('heroStatLabel1Input', 'TOTAL TRACKS'),
+        statTotal: getRawVal('heroStatTotalInput', '130+ Works'),
+        statLabel2: getRawVal('heroStatLabel2Input', 'ARRANGEMENTS'),
+        statArrangements: getRawVal('heroStatArrangementsInput', 'One-Chorus & Virtuoso'),
+        statLabel3: getRawVal('heroStatLabel3Input', 'AUDIO MASTERS'),
+        statAudio: getRawVal('heroStatAudioInput', 'Lossless High-Res')
+      };
+
+      // 01 FEATURES セクションのテキスト情報の保存
+      const featuresInfo = {
+        badge: document.getElementById('featuresSectionBadgeInput')?.value.trim() || 'MULTI-LAYERED VISUAL SPECIFICATIONS',
+        title: document.getElementById('featuresSectionTitleInput')?.value.trim() || '01 / FEATURES (動画のこだわり)',
+        desc: document.getElementById('featuresSectionDescInput')?.value.trim() || '歌える・学べる・弾ける。すべての動画に施された5層のマルチ情報。\n初心者から海外ファンまで、見るだけで演奏が深まる究極の映像仕様。',
+        card1Badge: document.getElementById('featCard1BadgeInput')?.value.trim() || 'SING ALONG',
+        card1En: document.getElementById('featCard1EnInput')?.value.trim() || 'JAPANESE LYRICS',
+        card1Ja: document.getElementById('featCard1JaInput')?.value.trim() || '日本語歌詞',
+        card1Desc: document.getElementById('featCard1DescInput')?.value.trim() || '一緒に歌える、原曲のニュアンスや感情がダイレクトに伝わる洗練された日本語歌詞。',
+        card1Tag: document.getElementById('featCard1TagInput')?.value.trim() || 'ニュアンスが伝わる',
+        card2Badge: document.getElementById('featCard2BadgeInput')?.value.trim() || 'GLOBAL FANS',
+        card2En: document.getElementById('featCard2EnInput')?.value.trim() || 'ROMAJI / ENGLISH LYRICS',
+        card2Ja: document.getElementById('featCard2JaInput')?.value.trim() || 'アルファベット歌詞',
+        card2Desc: document.getElementById('featCard2DescInput')?.value.trim() || '海外のファンも楽しめる英語・ローマ字歌詞。世界中どこからでも一緒に楽しめます。',
+        card2Tag: document.getElementById('featCard2TagInput')?.value.trim() || '海外ファンも楽しめる',
+        card3Badge: document.getElementById('featCard3BadgeInput')?.value.trim() || 'EASY TO PLAY',
+        card3En: document.getElementById('featCard3EnInput')?.value.trim() || 'DO-RE-MI NOTATION',
+        card3Ja: document.getElementById('featCard3JaInput')?.value.trim() || 'ドレミ音階',
+        card3Desc: document.getElementById('featCard3DescInput')?.value.trim() || '初心者でもパッと見てすぐに弾けるドレミの案内。鍵盤のどこを弾くか一目で分かります。',
+        card3Tag: document.getElementById('featCard3TagInput')?.value.trim() || '初心者もすぐに弾ける',
+        card4Badge: document.getElementById('featCard4BadgeInput')?.value.trim() || 'CHORD & THEORY',
+        card4En: document.getElementById('featCard4EnInput')?.value.trim() || 'C-D-E NOTATION',
+        card4Ja: document.getElementById('featCard4JaInput')?.value.trim() || 'CDE音階',
+        card4Desc: document.getElementById('featCard4DescInput')?.value.trim() || 'コードや国際基準で学べるアルファベット音階。ポピュラー音楽の理論やコード学習に最適。',
+        card4Tag: document.getElementById('featCard4TagInput')?.value.trim() || '国際基準で学べる',
+        card5Badge: document.getElementById('featCard5BadgeInput')?.value.trim() || 'PRACTICE COMPANION',
+        card5En: document.getElementById('featCard5EnInput')?.value.trim() || 'RIGHT-HAND SHEET MUSIC',
+        card5Ja: document.getElementById('featCard5JaInput')?.value.trim() || 'メロディ楽譜',
+        card5Desc: document.getElementById('featCard5DescInput')?.value.trim() || '右手の五線譜がついているから、動画を見ながら一緒に練習できる親切な設計。',
+        card5Tag: document.getElementById('featCard5TagInput')?.value.trim() || '動画を見ながら練習できる',
+        bannerPill: document.getElementById('featBannerPillInput')?.value.trim() || '5-IN-1 MULTI-SPECIFICATION',
+        bannerTitle: document.getElementById('featBannerTitleInput')?.value.trim() || '観る・歌う・弾ける。',
+        bannerHighlight: document.getElementById('featBannerHighlightInput')?.value.trim() || 'すべての動画が「練習＆鑑賞」のマルチ仕様。',
+        bannerDesc: document.getElementById('featBannerDescInput')?.value.trim() || 'ピアノの演奏映像に、日本語歌詞・アルファベット歌詞・ドレミ・CDE・右手五線譜の5つの情報レイヤーを美しく統合。\nただ聴くだけでなく、弾きたい曲を自分のペースでマスターできる映像体験をお届けします。'
+      };
+
+      // 02 MAIN COVERS テキスト情報の保存
+      const regInputVal = document.getElementById('regYoutubeUrlInput')?.value.trim();
+      const regularInfo = {
+        badge: document.getElementById('regSectionBadgeInput')?.value.trim() || 'FULL HARMONIC ARRANGEMENTS',
+        title: document.getElementById('regSectionTitleInput')?.value.trim() || '02 / MAIN COVERS (ワンコーラス)',
+        youtubeUrl: regInputVal || '',
+        desc: document.getElementById('regSectionDescInput')?.value.trim() || 'じっくり聴かせる、原曲の魅力を凝縮したワンコーラス演奏。\nMelodic Depth & Dynamic Range — ピアノならではの豊かな響きを味わうメイン動画。'
+      };
+
+      // 03 SHORTS テキスト情報の保存
+      const shtInputVal = document.getElementById('shtYoutubeUrlInput')?.value.trim();
+      const shortsInfo = {
+        badge: document.getElementById('shtSectionBadgeInput')?.value.trim() || 'CHORUS HIGHLIGHTS IN 60s',
+        title: document.getElementById('shtSectionTitleInput')?.value.trim() || '03 / SHORTS (サビだけ弾いてみた)',
+        youtubeUrl: shtInputVal || '',
+        desc: document.getElementById('shtSectionDescInput')?.value.trim() || 'サビの爆発力を1分に凝縮した、疾走感あるショート動画。\nInstant Climax & Finger Speed — スマホに最適化された縦長ショート演奏。'
+      };
+
+      // 04 LAB APPS セクションのテキスト情報の保存
+      const labInfo = {
+        badge: document.getElementById('labSectionBadgeInput')?.value.trim() || 'POWERED BY GOOGLE ANTIGRAVITY & AI',
+        title: document.getElementById('labSectionTitleInput')?.value.trim() || '04 / LAB APPS (開発アプリ)',
+        desc: document.getElementById('labSectionDescInput')?.value.trim() || 'Google Antigravity × AIが加速させる、次世代の音楽テクノロジー開発。\nこのWebサイトをはじめ、動画制作を革新するすべてのツールをAntigravity環境上で最速開発。',
+        heroBadge: document.getElementById('labHeroBadgeInput')?.value.trim() || 'NEXT-GEN DEVELOPMENT PIPELINE',
+        heroTitle: document.getElementById('labHeroTitleInput')?.value.trim() || 'すべては、',
+        heroHighlight: document.getElementById('labHeroHighlightInput')?.value.trim() || 'Google Antigravity × 最先端AI と共に。',
+        heroSubtitle: document.getElementById('labHeroSubtitleInput')?.value.trim() || '圧倒的なスピードで生み出される音楽プロダクト群。',
+        heroDesc: document.getElementById('labHeroDescInput')?.value.trim() || '当チャンネル「Music Tech Lab」のWebサイト自体はもちろん、動画内で活用しているビジュアライザーや歌詞同期アプリなど、すべてのプロダクトをGoogleが誇る次世代AI開発プラットフォーム「Google Antigravity」を活用して爆速構築しています。音楽と最先端テクノロジーの融合が、かつてない表現体験を切り拓きます。',
+        heroStat1Num: document.getElementById('labHeroStat1NumInput')?.value.trim() || 'AI-Native',
+        heroStat1Label: document.getElementById('labHeroStat1LabelInput')?.value.trim() || 'Google Antigravity Driven',
+        heroStat2Num: document.getElementById('labHeroStat2NumInput')?.value.trim() || 'Ultra Fast',
+        heroStat2Label: document.getElementById('labHeroStat2LabelInput')?.value.trim() || 'Rapid Iteration & Deploy',
+        heroStat3Num: document.getElementById('labHeroStat3NumInput')?.value.trim() || 'In The Lab',
+        heroStat3Label: document.getElementById('labHeroStat3LabelInput')?.value.trim() || 'Multiple AI Tools Under Dev',
+        card1Badge: document.getElementById('labCard1BadgeInput')?.value.trim() || 'VISUAL EFFECT TOOL',
+        card1En: document.getElementById('labCard1EnInput')?.value.trim() || 'Audio Visualizer',
+        card1Ja: document.getElementById('labCard1JaInput')?.value.trim() || 'オーディオビジュアライザー',
+        card1Status: document.getElementById('labCard1StatusInput')?.value.trim() || 'Active in Production',
+        card1Tag1: document.getElementById('labCard1Tag1Input')?.value.trim() || 'WebGL / Canvas',
+        card1Tag2: document.getElementById('labCard1Tag2Input')?.value.trim() || 'Realtime FFT',
+        card1Tag3: document.getElementById('labCard1Tag3Input')?.value.trim() || 'Antigravity Built',
+        card1Desc: document.getElementById('labCard1DescInput')?.value.trim() || '音楽の周波数波形や響きを美しくリアルタイム可視化するエフェクトツール。音の強弱に呼応するシネマティックな光彩パーティクルが、演奏動画の没入感を極限まで高めます。',
+        card2Badge: document.getElementById('labCard2BadgeInput')?.value.trim() || 'KARAOKE SYNC SYSTEM',
+        card2En: document.getElementById('labCard2EnInput')?.value.trim() || 'Lrc Sync App',
+        card2Ja: document.getElementById('labCard2JaInput')?.value.trim() || '同期型カラオケ歌詞アプリ',
+        card2Status: document.getElementById('labCard2StatusInput')?.value.trim() || 'Active in Production',
+        card2Tag1: document.getElementById('labCard2Tag1Input')?.value.trim() || 'Spacebar Rhythm Input',
+        card2Tag2: document.getElementById('labCard2Tag2Input')?.value.trim() || 'Smooth Color Flow',
+        card2Tag3: document.getElementById('labCard2Tag3Input')?.value.trim() || 'Antigravity Built',
+        card2Desc: document.getElementById('labCard2DescInput')?.value.trim() || 'スペースキーを曲に合わせてトントンと叩くだけで歌詞のタイムスタンプを直感的に記憶。カラオケのように歌詞の色が滑らかに変化する動画用テロップを即座に出力する次世代システム。',
+        card3Badge: document.getElementById('labCard3BadgeInput')?.value.trim() || 'REACTIVE 2D/3D ANIMATION',
+        card3En: document.getElementById('labCard3EnInput')?.value.trim() || 'Sonic Avatars',
+        card3Ja: document.getElementById('labCard3JaInput')?.value.trim() || '音波連動キャラクター',
+        card3Status: document.getElementById('labCard3StatusInput')?.value.trim() || 'Active in Production',
+        card3Tag1: document.getElementById('labCard3Tag1Input')?.value.trim() || 'Beat Reactive',
+        card3Tag2: document.getElementById('labCard3Tag2Input')?.value.trim() || 'Animal Avatars',
+        card3Tag3: document.getElementById('labCard3Tag3Input')?.value.trim() || 'Antigravity Built',
+        card3Desc: document.getElementById('labCard3DescInput')?.value.trim() || '音楽のビートやアタック音に合わせて、リアルタイムにリズミカルに踊り出す犬、猫、ウサギなどの愛らしい動物キャラクター群。動画画面を賑やかに彩るインタラクティブ演出。',
+        card4Badge: document.getElementById('labCard4BadgeInput')?.value.trim() || 'FUTURE ECOSYSTEM',
+        card4En: document.getElementById('labCard4EnInput')?.value.trim() || 'Music AI Ecosystem',
+        card4Ja: document.getElementById('labCard4JaInput')?.value.trim() || '次世代音楽AIツール群',
+        card4Status: document.getElementById('labCard4StatusInput')?.value.trim() || 'In Active Development',
+        card4Tag1: document.getElementById('labCard4Tag1Input')?.value.trim() || 'AI Audio Gen',
+        card4Tag2: document.getElementById('labCard4Tag2Input')?.value.trim() || 'Harmonic Engine',
+        card4Tag3: document.getElementById('labCard4Tag3Input')?.value.trim() || 'In Active R&D',
+        card4Desc: document.getElementById('labCard4DescInput')?.value.trim() || '自動楽譜認識・伴奏生成・音源分離など、多数の音楽AIツールをGoogle Antigravity上で現在鋭意開発中。テクノロジーで音楽表現の未来を拡張し続けます。'
+      };
+
+      // 05 STORE テキスト情報の保存
+      const storeInfo = {
+        sectionDesc: document.getElementById('storeSectionDescInput')?.value.trim() || '動画で使用しているオリジナルピアノ楽譜をPiascore（ピアスコア）にて好評配信中。\n購入後すぐにPDFでダウンロード＆印刷可能です。',
+        bannerTitle: document.getElementById('storeBannerTitleInput')?.value.trim() || '動画を見ながら一緒に弾ける。',
+        bannerHighlight: document.getElementById('storeBannerHighlightInput')?.value.trim() || '公式オリジナルピアノ楽譜。',
+        bannerDesc: document.getElementById('storeBannerDescInput')?.value.trim() || '当チャンネルの動画内で演奏しているアレンジをそのまま完全再現したオリジナルピアノ楽譜です。国内最大級の楽譜配信プラットフォーム「Piascore」にて安全に即時ダウンロードいただけます。',
+        publisherUrl: document.getElementById('storePublisherUrlInput')?.value.trim() || '',
+        guideDesc: document.getElementById('storeGuideDescInput')?.value.trim() || 'Piascoreで購入いただいた楽譜は、iPad・iPhone・Android・パソコンですぐに閲覧・印刷いただけます。Piascoreアプリの自動譜めくり機能や書き込み機能にも完全対応しています。'
+      };
+
+      // 06 FOOTER エリアのテキスト情報の保存
+      const footerInfo = {
+        title: document.getElementById('footerChannelTitleInput')?.value.trim() || 'MUSIC TECH LAB',
+        logoTag: document.getElementById('footerLogoTagInput')?.value.trim() || '最新アニソン&ゲーム音楽・ピアノCH',
+        motto: document.getElementById('footerMottoInput')?.value.trim() || 'Latest Anime & Game Music Meets Modern Piano Resonance.',
+        copyright: document.getElementById('footerCopyrightInput')?.value.trim() || '© 2025 MUSIC TECH LAB 【最新アニソン&ゲーム音楽・ピアノCH】. All Rights Reserved.',
+        designedBy: document.getElementById('footerDesignedByInput')?.value.trim() || 'Crafted for Cinematic Music Experiences'
+      };
+
+      localStorage.setItem('piano_cinema_custom_header_info', JSON.stringify(headerInfo));
+      localStorage.setItem('piano_cinema_custom_hero_info', JSON.stringify(heroInfo));
+      localStorage.setItem('piano_cinema_custom_features_info', JSON.stringify(featuresInfo));
+      localStorage.setItem('piano_cinema_custom_regular_info', JSON.stringify(regularInfo));
+      localStorage.setItem('piano_cinema_custom_shorts_info', JSON.stringify(shortsInfo));
+      localStorage.setItem('piano_cinema_custom_lab_info', JSON.stringify(labInfo));
+      localStorage.setItem('piano_cinema_custom_store_info', JSON.stringify(storeInfo));
+      localStorage.setItem('piano_cinema_custom_footer_info', JSON.stringify(footerInfo));
+      localStorage.setItem('piano_cinema_custom_channel_a', JSON.stringify(state.regularVideos));
+      localStorage.setItem('piano_cinema_custom_channel_b', JSON.stringify(state.shortsVideos));
+      state.sheets = state.sheets.map(s => ({ ...s, titleColor: s.titleColor || '#ffffff' }));
+      localStorage.setItem('piano_cinema_custom_sheets', JSON.stringify(state.sheets));
+
+      // リアルタイム完全同期パッチ（ポート8888へ即時送信）
+      const syncPayload = {
+        piano_cinema_custom_header_info: headerInfo,
+        piano_cinema_custom_hero_info: heroInfo,
+        piano_cinema_custom_features_info: featuresInfo,
+        piano_cinema_custom_regular_info: regularInfo,
+        piano_cinema_custom_shorts_info: shortsInfo,
+        piano_cinema_custom_lab_info: labInfo,
+        piano_cinema_custom_store_info: storeInfo,
+        piano_cinema_custom_footer_info: footerInfo,
+        piano_cinema_custom_channel_a: state.regularVideos,
+        piano_cinema_custom_channel_b: state.shortsVideos,
+        piano_cinema_custom_sheets: state.sheets
+      };
+
+      try {
+        fetch(getSyncApiUrl('/api/sync'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(syncPayload)
+        }).then(r => r.json()).then(res => {
+          if (res && res.success) {
+            console.log('[Admin Sync] Server port 8888 synced successfully at:', new Date().toLocaleTimeString());
+          }
+        }).catch(err => {
+          console.warn('[Admin Sync] Server sync error:', err);
+        });
+      } catch (err) {
+        console.warn('[Admin Sync] Sync request failed:', err);
+      }
+
+      document.getElementById('saveStatusMsg').textContent = '✅ 保存完了：表側サイトに即時反映されました！ (' + new Date().toLocaleTimeString() + ')';
+      showToast('サイトを更新しました！表側サイトで最新データが確認できます。');
+    }
+
+    function resetToDefault() {
+      alert('🛡️【絶対不可侵保護ロック作動中】\nクライアント様の管理パネルデータは神聖な絶対聖域として保護されています。\nAIや誤操作によるデータ初期化・リセットはシステム根本より永久に無効化されています。');
+    }
+
+    // ------------------------------------------------------------------------
+    // YOUTUBE HELPER
+    // ------------------------------------------------------------------------
+    function extractYouTubeId(urlOrId) {
+      if (!urlOrId) return '';
+      let input = String(urlOrId).trim();
+      const srcMatch = input.match(/src=["']([^"']+)["']/i);
+      if (srcMatch) input = srcMatch[1].trim();
+      input = input.replace(/^["']|["']$/g, '');
+      if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+      const vParamMatch = input.match(/[?&]v=([a-zA-Z0-9_-]{11})(?:[&#?].*)?$/);
+      if (vParamMatch && vParamMatch[1]) return vParamMatch[1];
+      const pathPatterns = [
+        /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:shorts\/|embed\/|v\/|live\/|video\/))([a-zA-Z0-9_-]{11})/i,
+        /(?:studio\.youtube\.com\/video\/)([a-zA-Z0-9_-]{11})/i,
+        /(?:youtube\.com\/watch\?(?:.*&)?v=)([a-zA-Z0-9_-]{11})/i
+      ];
+      for (const pattern of pathPatterns) {
+        const match = input.match(pattern);
+        if (match && match[1]) return match[1];
+      }
+      const genericMatch = input.match(/(?:[/?=])([a-zA-Z0-9_-]{11})(?:[/?#&]|$)/);
+      if (genericMatch && genericMatch[1] && genericMatch[1] !== 'watch' && genericMatch[1] !== 'video') {
+        return genericMatch[1];
+      }
+      return '';
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // ------------------------------------------------------------------------
+    // RENDER LISTS
+    // ------------------------------------------------------------------------
+    function renderAll() {
+      renderRegularList();
+      renderShortsList();
+      renderSheetsList();
+      lucide.createIcons();
+    }
+
+    function renderRegularList() {
+      const container = document.getElementById('listRegular');
+      container.innerHTML = '';
+
+      if (state.regularVideos.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted);padding:20px;text-align:center;">動画が登録されていません。</div>';
+        return;
+      }
+
+      state.regularVideos.forEach((v, index) => {
+        const cleanId = extractYouTubeId(v.youtubeId || v.id) || v.youtubeId;
+        const targetUrl = cleanId ? `https://www.youtube.com/watch?v=${cleanId}` : '#';
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        const thumb = v.thumbnail || `https://img.youtube.com/vi/${cleanId}/hqdefault.jpg`;
+
+        row.innerHTML = `
+          <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" title="YouTubeで動画を開く">
+            <img src="${thumb}" alt="${escapeHtml(v.title)}" class="item-thumb">
+          </a>
+          <div class="item-info">
+            <span class="item-badge">${escapeHtml(v.category || 'Main Cover')}</span>
+            <div class="item-title"><a href="${targetUrl}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;">${escapeHtml(v.title)} <i data-lucide="external-link" style="width:11px;height:11px;display:inline;"></i></a></div>
+            <div class="item-meta">
+              <span>ID: ${escapeHtml(cleanId)}</span>
+              <span>時間: ${escapeHtml(v.duration || '0:00')}</span>
+              <span>再生: ${escapeHtml(v.views || '')}</span>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button type="button" class="btn-delete" title="削除" onclick="deleteRegular(${index})">
+              <i data-lucide="trash-2" style="width:16px;height:16px;"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function renderShortsList() {
+      const container = document.getElementById('listShorts');
+      container.innerHTML = '';
+
+      if (state.shortsVideos.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted);padding:20px;text-align:center;">Shortsが登録されていません。</div>';
+        return;
+      }
+
+      state.shortsVideos.forEach((v, index) => {
+        const cleanId = extractYouTubeId(v.youtubeId || v.id) || v.youtubeId;
+        const targetUrl = cleanId ? `https://www.youtube.com/shorts/${cleanId}` : '#';
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        const thumb = v.thumbnail || `https://img.youtube.com/vi/${cleanId}/hqdefault.jpg`;
+
+        row.innerHTML = `
+          <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" title="YouTubeでShortsを開く">
+            <img src="${thumb}" alt="${escapeHtml(v.title)}" class="item-thumb shorts-thumb">
+          </a>
+          <div class="item-info">
+            <span class="item-badge">Shorts</span>
+            <div class="item-title"><a href="${targetUrl}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;">${escapeHtml(v.title)} <i data-lucide="external-link" style="width:11px;height:11px;display:inline;"></i></a></div>
+            <div class="item-meta">
+              <span>ID: ${escapeHtml(cleanId)}</span>
+              <span>再生: ${escapeHtml(v.views || '')}</span>
+              ${v.likes ? `<span>いいね: ${escapeHtml(v.likes)}</span>` : ''}
+            </div>
+          </div>
+          <div class="item-actions">
+            <button type="button" class="btn-delete" title="削除" onclick="deleteShorts(${index})">
+              <i data-lucide="trash-2" style="width:16px;height:16px;"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function renderSheetsList() {
+      const container = document.getElementById('listSheets');
+      container.innerHTML = '';
+
+      if (state.sheets.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted);padding:20px;text-align:center;">楽譜が登録されていません。</div>';
+        return;
+      }
+
+      state.sheets.forEach((s, index) => {
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        const thumb = s.thumbnail || 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?q=80&w=800&auto=format&fit=crop';
+
+        const titleCol = s.titleColor || '#ffffff';
+
+        row.innerHTML = `
+          <img src="${thumb}" alt="${escapeHtml(s.title)}" class="item-thumb" style="width:80px;height:60px;">
+          <div class="item-info">
+            <span class="item-badge">${escapeHtml(s.tag || 'HOT')} / ¥${escapeHtml(s.price || '440')}</span>
+            <div class="item-title" style="color: ${escapeHtml(titleCol)}; white-space: pre-wrap;">${escapeHtml(s.title)} <small style="color:var(--text-muted);">(${escapeHtml(s.workTitle || '')})</small></div>
+            <div class="item-meta">
+              <span>購入URL: <a href="${s.storeUrl || '#'}" target="_blank" style="color:var(--gold-light);">${escapeHtml(s.storeUrl || '')}</a></span>
+              <span style="display:inline-flex;align-items:center;gap:5px;margin-left:8px;font-family:monospace;font-size:0.75rem;color:var(--gold-light);"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${escapeHtml(titleCol)};border:1px solid rgba(255,255,255,0.3);"></span>${escapeHtml(titleCol)}</span>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button type="button" class="btn-delete" title="削除" onclick="deleteSheet(${index})">
+              <i data-lucide="trash-2" style="width:16px;height:16px;"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // ------------------------------------------------------------------------
+    // FORM HANDLERS
+    // ------------------------------------------------------------------------
+    window.deleteRegular = function(index) {
+      state.regularVideos.splice(index, 1);
+      renderRegularList();
+      lucide.createIcons();
+    };
+
+    window.deleteShorts = function(index) {
+      state.shortsVideos.splice(index, 1);
+      renderShortsList();
+      lucide.createIcons();
+    };
+
+    window.deleteSheet = function(index) {
+      state.sheets.splice(index, 1);
+      renderSheetsList();
+      lucide.createIcons();
+    };
+
+    document.getElementById('formAddRegular').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const rawUrl = document.getElementById('regUrl').value;
+      const youtubeId = extractYouTubeId(rawUrl);
+      if (!youtubeId) {
+        alert('有効なYouTube URLまたは動画IDを入力してください。');
+        return;
+      }
+
+      const title = document.getElementById('regTitle').value.trim();
+      const category = document.getElementById('regCategory').value.trim() || 'Anime Piano';
+      const duration = document.getElementById('regDuration').value.trim() || '1:45';
+      const customThumb = document.getElementById('regThumb').value.trim();
+      const desc = document.getElementById('regDesc').value.trim();
+
+      const newVideo = {
+        id: 'custom_reg_' + Date.now(),
+        youtubeId: youtubeId,
+        title: title,
+        description: desc || `${title} のワンコーラスピアノ演奏です。`,
+        thumbnail: customThumb || `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`,
+        publishedAt: new Date().toISOString(),
+        duration: duration,
+        views: 'NEW',
+        category: category
+      };
+
+      // 指定位置への挿入ロジック（フォールバック付き）
+      const rawPos = parseInt(document.getElementById('regInsertPos')?.value, 10);
+      const targetIndex = (!isNaN(rawPos) && rawPos > 1) ? Math.min(rawPos - 1, state.regularVideos.length) : 0;
+      state.regularVideos.splice(targetIndex, 0, newVideo);
+      localStorage.setItem('piano_cinema_custom_channel_a', JSON.stringify(state.regularVideos));
+
+      renderRegularList();
+      lucide.createIcons();
+
+      // Reset form
+      document.getElementById('formAddRegular').reset();
+      const posInput = document.getElementById('regInsertPos');
+      if (posInput) posInput.value = '1';
+      document.getElementById('regCategory').value = 'Anime Piano';
+      document.getElementById('regDuration').value = '1:45';
+      showToast(`通常動画を上から${targetIndex + 1}番目に追加しました！`);
+    });
+
+    document.getElementById('formAddShorts').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const rawUrl = document.getElementById('shtUrl').value;
+      const youtubeId = extractYouTubeId(rawUrl);
+      if (!youtubeId) {
+        alert('有効なYouTube Shorts URLまたは動画IDを入力してください。');
+        return;
+      }
+
+      const title = document.getElementById('shtTitle').value.trim();
+      const views = document.getElementById('shtViews').value.trim() || 'NEW';
+      const likes = document.getElementById('shtLikes').value.trim() || '10K';
+      const customThumb = document.getElementById('shtThumb').value.trim();
+
+      const newShort = {
+        id: 'custom_sht_' + Date.now(),
+        youtubeId: youtubeId,
+        title: title,
+        description: 'サビだけ弾いてみた！',
+        thumbnail: customThumb || `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`,
+        publishedAt: new Date().toISOString(),
+        views: views,
+        likes: likes
+      };
+
+      // 指定位置への挿入ロジック（フォールバック付き）
+      const rawPos = parseInt(document.getElementById('shtInsertPos')?.value, 10);
+      const targetIndex = (!isNaN(rawPos) && rawPos > 1) ? Math.min(rawPos - 1, state.shortsVideos.length) : 0;
+      state.shortsVideos.splice(targetIndex, 0, newShort);
+      localStorage.setItem('piano_cinema_custom_channel_b', JSON.stringify(state.shortsVideos));
+
+      renderShortsList();
+      lucide.createIcons();
+
+      // Reset form
+      document.getElementById('formAddShorts').reset();
+      const posInput = document.getElementById('shtInsertPos');
+      if (posInput) posInput.value = '1';
+      document.getElementById('shtViews').value = '1.2M';
+      document.getElementById('shtLikes').value = '85K';
+      showToast(`ショート動画を上から${targetIndex + 1}番目に追加しました！`);
+    });
+
+    // 曲名カラーピッカーのプレビュー連動
+    document.getElementById('sheetTitleColor')?.addEventListener('input', (e) => {
+      const valEl = document.getElementById('sheetTitleColorVal');
+      if (valEl) valEl.textContent = e.target.value;
+    });
+
+    document.getElementById('formAddSheet').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = document.getElementById('sheetTitle').value.trim();
+      const titleColor = document.getElementById('sheetTitleColor')?.value || '#ffffff';
+      const workTitle = document.getElementById('sheetWork').value.trim();
+      const price = document.getElementById('sheetPrice').value.trim() || '440';
+      const tag = document.getElementById('sheetTag').value.trim() || 'HOT';
+      const storeUrl = document.getElementById('sheetUrl').value.trim();
+      const customThumb = document.getElementById('sheetThumb').value.trim();
+      const desc = document.getElementById('sheetDesc').value.trim();
+      const specsRaw = document.getElementById('sheetSpecs').value.trim();
+
+      const specs = specsRaw.split(/[,、]/).map(s => s.trim()).filter(Boolean);
+
+      const newSheet = {
+        id: 'custom_sheet_' + Date.now(),
+        title: title,
+        titleColor: titleColor || '#ffffff',
+        workTitle: workTitle,
+        description: desc || '右手メロディ五線譜・ドレミ音階・CDEコード付きワンコーラス楽譜。',
+        thumbnail: customThumb || 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?q=80&w=800&auto=format&fit=crop',
+        price: price,
+        currency: '¥',
+        taxIncluded: true,
+        tag: tag,
+        tagType: tag.toLowerCase() === 'popular' ? 'popular' : 'hot',
+        specs: specs.length > 0 ? specs : ['右手五線譜', 'ドレミ付き', 'CDE表記', 'PDF即時DL'],
+        storeUrl: storeUrl
+      };
+
+      // 指定位置への挿入ロジック（フォールバック付き）
+      const rawPos = parseInt(document.getElementById('sheetInsertPos')?.value, 10);
+      const targetIndex = (!isNaN(rawPos) && rawPos > 1) ? Math.min(rawPos - 1, state.sheets.length) : 0;
+      state.sheets.splice(targetIndex, 0, newSheet);
+      localStorage.setItem('piano_cinema_custom_sheets', JSON.stringify(state.sheets));
+
+      renderSheetsList();
+      lucide.createIcons();
+
+      // Reset form
+      document.getElementById('formAddSheet').reset();
+      const posInput = document.getElementById('sheetInsertPos');
+      if (posInput) posInput.value = '1';
+      if (document.getElementById('sheetTitleColor')) document.getElementById('sheetTitleColor').value = '#ffffff';
+      if (document.getElementById('sheetTitleColorVal')) document.getElementById('sheetTitleColorVal').textContent = '#ffffff';
+      document.getElementById('sheetPrice').value = '440';
+      document.getElementById('sheetTag').value = 'HOT';
+      document.getElementById('sheetThumb').value = 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?q=80&w=800&auto=format&fit=crop';
+      document.getElementById('sheetSpecs').value = '右手五線譜, ドレミ付き, CDE表記, PDF即時DL';
+      showToast(`楽譜データを上から${targetIndex + 1}番目に追加しました！`);
+    });
+
+    // ------------------------------------------------------------------------
+    // TABS SWITCHING
+    // ------------------------------------------------------------------------
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.dataset.tab;
+        tabBtns.forEach(b => b.classList.remove('is-active'));
+        tabPanels.forEach(p => p.classList.remove('is-active'));
+
+        btn.classList.add('is-active');
+        const targetPanel = document.getElementById(targetTab);
+        if (targetPanel) {
+          targetPanel.classList.add('is-active');
+        }
+      });
+    });
+
+    // ------------------------------------------------------------------------
+    // SAVE & RESET EVENTS
+    // ------------------------------------------------------------------------
+    document.getElementById('btnSaveAll').addEventListener('click', saveState);
+    document.getElementById('btnResetDefault').addEventListener('click', resetToDefault);
+
+    // ------------------------------------------------------------------------
+    // WINDOWS LOCAL ADMIN ONLY: MAINTENANCE MODE TOGGLE LOGIC (2つのボタンの間の隙間スイッチ)
+    // ------------------------------------------------------------------------
+    let isMaintenanceActive = false;
+    const maintenanceStatusBadge = document.getElementById('maintenanceStatusBadge');
+    const btnMaintenanceToggle = document.getElementById('btnMaintenanceToggle');
+    const maintenanceBtnLabel = document.getElementById('maintenanceBtnLabel');
+
+    function updateMaintenanceUI(active) {
+      isMaintenanceActive = !!active;
+      if (!btnMaintenanceToggle) return;
+
+      if (isMaintenanceActive) {
+        btnMaintenanceToggle.classList.add('is-maintenance-on');
+        btnMaintenanceToggle.setAttribute('aria-checked', 'true');
+        if (maintenanceStatusBadge) maintenanceStatusBadge.textContent = 'ON (遮断中)';
+        if (maintenanceBtnLabel) {
+          maintenanceBtnLabel.textContent = '【 サイトをメンテナンス中にする（世界中のアクセスを一時遮断）】';
+        }
+      } else {
+        btnMaintenanceToggle.classList.remove('is-maintenance-on');
+        btnMaintenanceToggle.setAttribute('aria-checked', 'false');
+        if (maintenanceStatusBadge) maintenanceStatusBadge.textContent = 'OFF';
+        if (maintenanceBtnLabel) {
+          maintenanceBtnLabel.textContent = '【 サイトをメンテナンス中にする（世界中のアクセスを一時遮断）】';
+        }
+      }
+    }
+
+    async function fetchMaintenanceState() {
+      try {
+        const res = await fetch(getSyncApiUrl('/api/maintenance'));
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.success) {
+            updateMaintenanceUI(json.maintenance);
+          }
+        }
+      } catch (e) {
+        console.warn('[Admin Maintenance] Status fetch skipped:', e);
+      }
+    }
+
+    if (btnMaintenanceToggle) {
+      btnMaintenanceToggle.addEventListener('click', async () => {
+        const nextState = !isMaintenanceActive;
+        try {
+          const res = await fetch(getSyncApiUrl('/api/maintenance'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ maintenance: nextState })
+          });
+          if (res.ok) {
+            const json = await res.json();
+            if (json && json.success) {
+              updateMaintenanceUI(json.maintenance);
+              if (json.maintenance) {
+                showToast('🛠️ サイトをメンテナンス中（アクセス一時遮断）に切り替えました！');
+              } else {
+                showToast('✨ メンテナンスを解除しました！世界中から最新サイトが閲覧可能です。');
+              }
+            }
+          } else {
+            alert('メンテナンスモードの切り替えに失敗しました（ローカルのWindowsパソコンから操作してください）。');
+          }
+        } catch (err) {
+          console.error('[Admin Maintenance] Toggle failed:', err);
+          alert('サーバーとの通信に失敗しました。server.js が稼働しているか確認してください。');
+        }
+      });
+    }
+
+    // Toast Utility
+    let toastTimeout = null;
+    function showToast(msg) {
+      const toast = document.getElementById('adminToast');
+      const text = document.getElementById('toastText');
+      text.textContent = msg;
+      toast.classList.add('is-active');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('is-active');
+      }, 3500);
+    }
+
+    // Initialize
+    syncFromServerBeforeLoad();
+    fetchMaintenanceState();
+    lucide.createIcons();
+  </script>
+</body>
+</html>

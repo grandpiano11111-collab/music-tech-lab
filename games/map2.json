@@ -1,0 +1,21 @@
+{
+  "stageNumber": 2,
+  "name": "STAGE 2: NEON HEART",
+  "spawnEnemy": 0,
+  "itemDropRate": 0.15,
+  "isMating": false,
+  "movingBlocksRow": null,
+  "blockType": {
+    "1": { "maxHp": 1, "baseColor": "#ff007f" },
+    "2": { "maxHp": 2, "baseColor": "#ffaa00" }
+  },
+  "blocks": [
+    [0, 1, 2, 1, 0, 1, 2, 1, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 1, 1, 1, 1, 1, 1, 1, 0],
+    [0, 0, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 0, 1, 1, 1, 0, 0, 0],
+    [0, 0, 0, 0, 2, 0, 0, 0, 0]
+  ]
+}

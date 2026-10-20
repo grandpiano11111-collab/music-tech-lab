@@ -1,0 +1,5378 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Neon Pulse Barrier 最終防衛ライン</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-touch-callout: none;
+    }
+
+    /* 画面全体を黒にし、余白を含めて中央配置 */
+    body {
+      background-color: #000;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace, sans-serif;
+    }
+
+    /* 16:9 を維持して画面内に最大化するゲームステージ */
+    .game-stage {
+      position: relative;
+      width: min(100vw, calc(100vh * 16 / 9));
+      height: min(100vh, calc(100vw * 9 / 16));
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 60px rgba(0, 0, 0, 0.95);
+      cursor: none !important; /* プレイエリア内はカーソル非表示 */
+    }
+
+    /* ゲームキャンバス（高精細1600x900） */
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background-color: #000;
+      cursor: none !important;
+    }
+
+    /* ==========================================
+       タイトル画面オーバーレイ（サイバーパンク調）
+       ========================================== */
+    .title-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(0, 15, 30, 0.94) 0%, rgba(0, 0, 0, 0.98) 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 150;
+      cursor: default !important;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+
+    .title-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .title-box {
+      width: 88%;
+      max-width: 920px;
+      background: rgba(0, 20, 35, 0.88);
+      border: 2px solid #00f0ff;
+      border-radius: 20px;
+      box-shadow: 0 0 50px rgba(0, 240, 255, 0.35), inset 0 0 30px rgba(0, 240, 255, 0.15);
+      padding: 38px 46px;
+      text-align: center;
+      backdrop-filter: blur(16px);
+      position: relative;
+    }
+
+    .title-badge {
+      display: inline-block;
+      padding: 4px 16px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 2.5px;
+      color: #00ff88;
+      background: rgba(0, 255, 136, 0.12);
+      border: 1px solid #00ff88;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      box-shadow: 0 0 12px rgba(0, 255, 136, 0.3);
+    }
+
+    .title-logo {
+      font-size: 46px;
+      font-weight: 900;
+      letter-spacing: 5px;
+      color: #ffffff;
+      text-shadow: 0 0 20px #00f0ff, 0 0 45px #00f0ff, 0 0 80px rgba(0, 240, 255, 0.7);
+      margin-bottom: 8px;
+      line-height: 1.18;
+    }
+
+    .title-logo-sub {
+      display: block;
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 8px;
+      color: #00ff88;
+      text-shadow: 0 0 16px #00ff88, 0 0 35px rgba(0, 255, 136, 0.7);
+      margin-top: 6px;
+    }
+
+    .title-sub {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 3.5px;
+      color: #00ff88;
+      text-shadow: 0 0 10px #00ff88;
+      margin-bottom: 26px;
+    }
+
+    .title-hiscore {
+      display: inline-block;
+      margin-bottom: 22px;
+      padding: 6px 20px;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #ffe600;
+      background: rgba(255, 230, 0, 0.08);
+      border: 1px solid rgba(255, 230, 0, 0.45);
+      border-radius: 20px;
+      text-shadow: 0 0 10px rgba(255, 230, 0, 0.65);
+      font-family: 'Rajdhani', monospace, sans-serif;
+    }
+
+    .diff-section-title {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      color: #8899aa;
+      margin-bottom: 16px;
+    }
+
+    .diff-btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .cyber-diff-btn {
+      flex: 1;
+      padding: 20px 14px;
+      background: rgba(0, 15, 25, 0.85);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer !important;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      outline: none;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .cyber-diff-btn:hover {
+      transform: translateY(-4px) scale(1.02);
+    }
+
+    .cyber-diff-btn:active {
+      transform: translateY(2px) scale(0.98);
+    }
+
+    /* EASY (Green) */
+    .btn-easy {
+      border: 2px solid #00ff88;
+      color: #00ff88;
+      box-shadow: 0 0 18px rgba(0, 255, 136, 0.25), inset 0 0 10px rgba(0, 255, 136, 0.1);
+    }
+    .btn-easy:hover {
+      background: rgba(0, 255, 136, 0.2);
+      box-shadow: 0 0 35px rgba(0, 255, 136, 0.65), inset 0 0 20px rgba(0, 255, 136, 0.35);
+    }
+
+    /* NORMAL (Cyan) */
+    .btn-normal {
+      border: 2px solid #00f0ff;
+      color: #00f0ff;
+      box-shadow: 0 0 18px rgba(0, 240, 255, 0.25), inset 0 0 10px rgba(0, 240, 255, 0.1);
+    }
+    .btn-normal:hover {
+      background: rgba(0, 240, 255, 0.2);
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.65), inset 0 0 20px rgba(0, 240, 255, 0.35);
+    }
+
+    /* HARD (Red/Pink) */
+    .btn-hard {
+      border: 2px solid #ff0055;
+      color: #ff0055;
+      box-shadow: 0 0 18px rgba(255, 0, 85, 0.25), inset 0 0 10px rgba(255, 0, 85, 0.1);
+    }
+    .btn-hard:hover {
+      background: rgba(255, 0, 85, 0.2);
+      box-shadow: 0 0 35px rgba(255, 0, 85, 0.65), inset 0 0 20px rgba(255, 0, 85, 0.35);
+    }
+
+    .diff-name {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 2.5px;
+    }
+
+    .diff-desc {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      opacity: 0.92;
+    }
+
+    .diff-tag {
+      display: inline-block;
+      padding: 3px 12px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.12);
+      margin-top: 4px;
+    }
+
+    .title-instruction {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      color: #778899;
+      line-height: 1.8;
+    }
+
+    /* ==========================================
+       右側コントロールパネル（フルスクリーン ＆ ポーズ）
+       ========================================== */
+    .top-controls {
+      position: absolute;
+      top: 96px;
+      right: max(20px, calc((100vw - min(100vw, calc(100vh * 16 / 9))) / 4 - 60px));
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 200;
+    }
+
+    .cyber-panel-btn {
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      border-radius: 8px;
+      cursor: pointer !important;
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+    }
+
+    /* フルスクリーンボタン */
+    .fullscreen-btn {
+      color: #00f0ff;
+      background: rgba(0, 20, 30, 0.85);
+      border: 1.5px solid #00f0ff;
+      box-shadow: 0 0 14px rgba(0, 240, 255, 0.35), inset 0 0 8px rgba(0, 240, 255, 0.15);
+    }
+    .fullscreen-btn:hover {
+      border-color: #00ff88;
+      color: #00ff88;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.6), inset 0 0 10px rgba(0, 255, 136, 0.25);
+    }
+
+    /* ポーズボタン */
+    .pause-btn {
+      color: #00ff88;
+      background: rgba(0, 25, 20, 0.85);
+      border: 1.5px solid #00ff88;
+      box-shadow: 0 0 14px rgba(0, 255, 136, 0.35), inset 0 0 8px rgba(0, 255, 136, 0.15);
+    }
+    .pause-btn:hover {
+      border-color: #00f0ff;
+      color: #00f0ff;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.6), inset 0 0 10px rgba(0, 240, 255, 0.25);
+    }
+
+    .cyber-panel-btn:active {
+      transform: scale(0.94);
+    }
+
+    /* ==========================================
+       一括音量コントローラー ＆ ミュートボタン
+       ========================================== */
+    .cyber-volume-control {
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: rgba(0, 20, 30, 0.85);
+      border: 1.5px solid #00f0ff;
+      box-shadow: 0 0 14px rgba(0, 240, 255, 0.35), inset 0 0 8px rgba(0, 240, 255, 0.15);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      box-sizing: border-box;
+      width: 100%;
+    }
+    .cyber-volume-control:hover {
+      border-color: #00ff88;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.5), inset 0 0 10px rgba(0, 255, 136, 0.2);
+    }
+
+    /* ミュートボタン */
+    .mute-btn {
+      background: transparent;
+      border: none;
+      color: #00f0ff;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 2px 4px;
+      margin: 0;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.12s ease, color 0.15s ease;
+      outline: none;
+    }
+    .mute-btn:hover {
+      color: #00ff88;
+      transform: scale(1.18);
+    }
+    .mute-btn:active {
+      transform: scale(0.92);
+    }
+
+    .slider-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+    }
+
+    /* サイバーパンク調ネオンスライダー */
+    .cyber-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 60px;
+      height: 6px;
+      background: rgba(0, 240, 255, 0.25);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      margin: 0;
+      padding: 0;
+    }
+    .cyber-slider:hover {
+      background: rgba(0, 255, 136, 0.4);
+    }
+    .cyber-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #00ff88;
+      box-shadow: 0 0 8px #00ff88, 0 0 14px rgba(0, 255, 136, 0.8);
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.15s ease;
+    }
+    .cyber-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+      background: #00f0ff;
+      box-shadow: 0 0 10px #00f0ff, 0 0 18px rgba(0, 240, 255, 0.9);
+    }
+    .cyber-slider::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border: none;
+      border-radius: 50%;
+      background: #00ff88;
+      box-shadow: 0 0 8px #00ff88, 0 0 14px rgba(0, 255, 136, 0.8);
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.15s ease;
+    }
+    .cyber-slider::-moz-range-thumb:hover {
+      transform: scale(1.25);
+      background: #00f0ff;
+      box-shadow: 0 0 10px #00f0ff, 0 0 18px rgba(0, 240, 255, 0.9);
+    }
+
+    /* 音量数値ラベル */
+    .volume-label {
+      color: #00f0ff;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'Rajdhani', sans-serif, monospace;
+      min-width: 28px;
+      text-align: right;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 6px rgba(0, 240, 255, 0.6);
+      line-height: 1;
+    }
+
+    /* ==========================================
+       サイバーパンク調バーチャルパッド（左右余白）
+       ========================================== */
+    .cyber-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 84px;
+      height: 84px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 2px;
+      background: rgba(0, 20, 30, 0.75);
+      border: 2px solid #00f0ff;
+      border-radius: 14px;
+      color: #00f0ff;
+      box-shadow: 0 0 18px rgba(0, 240, 255, 0.35), inset 0 0 12px rgba(0, 240, 255, 0.15);
+      cursor: pointer !important;
+      touch-action: none;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+      transition: border-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.1s;
+    }
+
+    .btn-left {
+      left: max(20px, calc((100vw - min(100vw, calc(100vh * 16 / 9))) / 4 - 42px));
+      top: calc(50% - 50px);
+    }
+
+    .btn-right {
+      right: max(20px, calc((100vw - min(100vw, calc(100vh * 16 / 9))) / 4 - 42px));
+      top: calc(50% - 50px);
+    }
+
+    /* ネオン・ボムボタン（電磁バースト） */
+    .btn-bomb {
+      border-color: #ff0055;
+      color: #ff0055;
+      box-shadow: 0 0 18px rgba(255, 0, 85, 0.35), inset 0 0 12px rgba(255, 0, 85, 0.15);
+    }
+
+    .btn-bomb-left {
+      left: max(20px, calc((100vw - min(100vw, calc(100vh * 16 / 9))) / 4 - 42px));
+      top: calc(50% + 50px);
+    }
+
+    .btn-bomb-right {
+      right: max(20px, calc((100vw - min(100vw, calc(100vh * 16 / 9))) / 4 - 42px));
+      top: calc(50% + 50px);
+    }
+
+    .btn-bomb:hover {
+      border-color: #ff5588;
+      color: #ff5588;
+      box-shadow: 0 0 28px rgba(255, 0, 85, 0.7), inset 0 0 16px rgba(255, 0, 85, 0.3);
+    }
+
+    .btn-bomb.active,
+    .btn-bomb:active {
+      background: rgba(255, 0, 85, 0.35);
+      border-color: #ff0055;
+      color: #ffffff;
+      box-shadow: 0 0 35px rgba(255, 0, 85, 0.95), inset 0 0 20px rgba(255, 0, 85, 0.6);
+      transform: translateY(-50%) scale(0.92);
+    }
+
+    .btn-bomb-icon {
+      font-size: 24px;
+      line-height: 1;
+      filter: drop-shadow(0 0 8px #ff0055);
+    }
+
+    .btn-bomb-stock {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #ffe600;
+      text-shadow: 0 0 8px #ffe600;
+    }
+
+    .btn-bomb.empty {
+      opacity: 0.38;
+      border-color: #555566;
+      color: #777788;
+      box-shadow: none;
+      cursor: not-allowed !important;
+    }
+    .btn-bomb.empty .btn-bomb-stock {
+      color: #777788;
+      text-shadow: none;
+    }
+
+    .btn-arrow {
+      font-size: 30px;
+      line-height: 1;
+      text-shadow: 0 0 10px #00f0ff;
+    }
+
+    .btn-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      opacity: 0.85;
+    }
+
+    .cyber-btn:hover {
+      border-color: #00ff88;
+      color: #00ff88;
+      box-shadow: 0 0 24px rgba(0, 255, 136, 0.5), inset 0 0 14px rgba(0, 255, 136, 0.25);
+    }
+    .cyber-btn:hover .btn-arrow {
+      text-shadow: 0 0 12px #00ff88;
+    }
+
+    .cyber-btn.active,
+    .cyber-btn:active {
+      background: rgba(0, 255, 136, 0.25);
+      border-color: #00ff88;
+      color: #00ff88;
+      box-shadow: 0 0 35px rgba(0, 255, 136, 0.9), inset 0 0 20px rgba(0, 255, 136, 0.6);
+      transform: translateY(-50%) scale(0.92);
+    }
+
+    /* ==========================================
+       ポーズ画面オーバーレイ（ネオン調選択メニュー）
+       ========================================== */
+    .pause-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(0, 15, 25, 0.88) 0%, rgba(0, 0, 0, 0.94) 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 140;
+      cursor: default !important;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .pause-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .pause-box {
+      width: 82%;
+      max-width: 560px;
+      background: rgba(0, 20, 35, 0.92);
+      border: 2px solid #00ff88;
+      border-radius: 18px;
+      box-shadow: 0 0 45px rgba(0, 255, 136, 0.35), inset 0 0 25px rgba(0, 255, 136, 0.12);
+      padding: 32px 38px;
+      text-align: center;
+      position: relative;
+    }
+
+    .pause-badge {
+      display: inline-block;
+      padding: 3px 14px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #00f0ff;
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid #00f0ff;
+      border-radius: 20px;
+      margin-bottom: 8px;
+    }
+
+    .pause-title {
+      font-size: 44px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: #00ff88;
+      text-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88;
+      margin-bottom: 4px;
+      line-height: 1.1;
+    }
+
+    .pause-sub {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: #8899aa;
+      margin-bottom: 24px;
+    }
+
+    .pause-btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .cyber-menu-btn {
+      width: 100%;
+      padding: 14px 22px;
+      background: rgba(0, 15, 25, 0.85);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer !important;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      outline: none;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .cyber-menu-btn .menu-btn-icon {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .cyber-menu-btn .menu-btn-content {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    .cyber-menu-btn .menu-btn-text {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 2.5px;
+    }
+
+    .cyber-menu-btn .menu-btn-sub {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      opacity: 0.85;
+    }
+
+    .btn-resume {
+      border: 2px solid #00ff88;
+      color: #00ff88;
+      box-shadow: 0 0 16px rgba(0, 255, 136, 0.25), inset 0 0 8px rgba(0, 255, 136, 0.1);
+    }
+    .btn-resume:hover {
+      background: rgba(0, 255, 136, 0.22);
+      box-shadow: 0 0 30px rgba(0, 255, 136, 0.65), inset 0 0 16px rgba(0, 255, 136, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .btn-quit {
+      border: 2px solid #ff0055;
+      color: #ff0055;
+      box-shadow: 0 0 16px rgba(255, 0, 85, 0.25), inset 0 0 8px rgba(255, 0, 85, 0.1);
+    }
+    .btn-quit:hover {
+      background: rgba(255, 0, 85, 0.22);
+      box-shadow: 0 0 30px rgba(255, 0, 85, 0.65), inset 0 0 16px rgba(255, 0, 85, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .pause-hint {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #667788;
+    }
+
+    /* ==========================================
+       ストーリー字幕オーバーレイ（全画面解像度対応・80%自動折り返し・CSS制御）
+       ========================================== */
+    .story-overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(3, 10, 22, 0.94) 0%, rgba(0, 4, 10, 0.98) 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 130;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      box-sizing: border-box;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .story-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .story-overlay.fireworks-mode {
+      background: rgba(1, 6, 16, 0.58);
+      backdrop-filter: blur(2px);
+    }
+
+    .story-box {
+      width: 86%;
+      max-width: 80%;
+      max-height: 88%;
+      background: rgba(0, 18, 32, 0.88);
+      border: 2px solid #00f0ff;
+      border-radius: 18px;
+      box-shadow: 0 0 45px rgba(0, 240, 255, 0.35), inset 0 0 25px rgba(0, 240, 255, 0.15);
+      padding: 32px 42px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      pointer-events: auto;
+    }
+
+    .story-overlay.fireworks-mode .story-box {
+      border-color: #00ff88;
+      box-shadow: 0 0 45px rgba(0, 255, 136, 0.4), inset 0 0 25px rgba(0, 255, 136, 0.15);
+      background: rgba(0, 15, 25, 0.76);
+    }
+
+    .story-badge {
+      display: inline-block;
+      align-self: flex-start;
+      padding: 4px 14px;
+      font-size: clamp(10px, 1.1vw, 13px);
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #00ff88;
+      background: rgba(0, 255, 136, 0.12);
+      border: 1px solid #00ff88;
+      border-radius: 14px;
+      margin-bottom: 10px;
+    }
+
+    .story-header {
+      font-size: clamp(14px, 1.8vw, 22px);
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #00f0ff;
+      text-shadow: 0 0 14px #00f0ff;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+      padding-bottom: 10px;
+    }
+
+    .story-overlay.fireworks-mode .story-header {
+      color: #00ff88;
+      text-shadow: 0 0 20px #00ff88;
+      font-size: clamp(18px, 2.5vw, 32px);
+      text-align: center;
+      border-bottom-color: rgba(0, 255, 136, 0.3);
+    }
+
+    .story-body {
+      width: 100%;
+      max-width: 80%;
+      margin: 0 auto;
+      font-size: clamp(13px, 1.75vw, 21px);
+      font-weight: 600;
+      line-height: 1.85;
+      letter-spacing: 1.2px;
+      word-break: break-all;
+      white-space: pre-wrap;
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+      min-height: 140px;
+      margin-bottom: 22px;
+    }
+
+    .story-line {
+      margin-bottom: 12px;
+      word-break: break-all;
+      white-space: pre-wrap;
+      max-width: 80%;
+    }
+
+    .story-line.log {
+      color: #00f0ff;
+      text-shadow: 0 0 12px #00f0ff;
+    }
+
+    .story-line.system {
+      color: #00ff88;
+      text-shadow: 0 0 12px #00ff88;
+    }
+
+    .story-line.warning {
+      color: #ff0055;
+      text-shadow: 0 0 14px #ff0055;
+    }
+
+    .story-line.dialogue {
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+    }
+
+    .story-footer {
+      margin-top: auto;
+      width: 100%;
+    }
+
+    .story-progress-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .story-progress-fill {
+      width: 0%;
+      height: 100%;
+      background: #00ff88;
+      box-shadow: 0 0 10px #00ff88;
+    }
+
+    .story-skip-guide {
+      font-size: clamp(11px, 1.2vw, 14px);
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      color: #8899aa;
+      text-align: center;
+    }
+
+    /* ==========================================
+       エンドクレジット／サイバーピンク＆ネオンブルー装飾スタイル
+       ========================================== */
+    .cyber-credits-title {
+      font-size: 46px;
+      font-weight: 900;
+      letter-spacing: 5px;
+      color: #ff2a8d;
+      text-shadow:
+        0 0 10px #ff007f,
+        0 0 20px #ff007f,
+        0 0 35px #00f0ff,
+        0 0 55px #00f0ff,
+        0 0 75px rgba(0, 240, 255, 0.7);
+    }
+
+    .cyber-credits-sub {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: #00f0ff;
+      text-shadow:
+        0 0 10px #00f0ff,
+        0 0 20px #00f0ff,
+        0 0 30px #00ff88,
+        0 0 45px rgba(0, 255, 136, 0.7);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BGM再生用要素（厳格MIME指定 ＆ canplay検知型） -->
+  <audio id="bgmAudio" loop preload="auto"></audio>
+
+  <!-- 画面右上：コントロールパネル（フルスクリーン ＆ ポーズ ＆ 音量一括管理） -->
+  <div class="top-controls">
+    <button id="btnFullscreen" class="cyber-panel-btn fullscreen-btn" aria-label="全画面表示">
+      <span id="fullscreenIcon">⛶</span>
+      <span id="fullscreenText">FULLSCREEN</span>
+    </button>
+    <button id="btnPause" class="cyber-panel-btn pause-btn" aria-label="一時停止">
+      <span id="pauseIcon">⏸</span>
+      <span id="pauseText">PAUSE</span>
+    </button>
+    <div class="cyber-volume-control" title="マスター音量一括調整">
+      <button id="btnMute" class="mute-btn" aria-label="ミュート切替" title="ミュート切替">
+        <span id="muteIcon">🔊</span>
+      </button>
+      <div class="slider-wrapper">
+        <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5" class="cyber-slider" aria-label="音量スライダー">
+        <span id="volumeValue" class="volume-label">50%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 左余白：左移動ボタン ＆ ボムボタン -->
+  <button id="btnLeft" class="cyber-btn btn-left" aria-label="左移動">
+    <span class="btn-arrow">◀</span>
+    <span class="btn-label">LEFT</span>
+  </button>
+  <button id="btnBombLeft" class="cyber-btn btn-bomb btn-bomb-left" aria-label="ボム発動">
+    <span class="btn-bomb-icon">💥</span>
+    <span class="btn-label">BOMB [B]</span>
+    <span class="btn-bomb-stock">×1</span>
+  </button>
+
+  <!-- 中央の16:9ゲームステージ -->
+  <div class="game-stage" id="gameStage">
+    <canvas id="gameCanvas" width="1600" height="900"></canvas>
+
+    <!-- ストーリー字幕オーバーレイ（全解像度対応・80%自動折り返し・CSS制御） -->
+    <div class="story-overlay hidden" id="storyOverlay">
+      <div class="story-box" id="storyBox">
+        <div class="story-badge" id="storyBadge">// MISSION BRIEFING //</div>
+        <div class="story-header" id="storySectorHeader">SECTOR 01: PERIMETER GATE</div>
+        <div class="story-body" id="storyBody">
+          <!-- 自動折り返し（word-break: break-all; white-space: pre-wrap; max-width: 80%） -->
+        </div>
+        <div class="story-footer">
+          <div class="story-progress-track">
+            <div class="story-progress-fill" id="storyProgressFill"></div>
+          </div>
+          <div class="story-skip-guide" id="storySkipGuide">PRESS [SPACE] OR CLICK SCREEN TO SKIP BRIEFING ▶</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ポーズメニューオーバーレイ -->
+    <div class="pause-overlay hidden" id="pauseOverlay">
+      <div class="pause-box">
+        <div class="pause-badge">SYSTEM PAUSED</div>
+        <h2 class="pause-title">- PAUSED -</h2>
+        <p class="pause-sub">MISSION SUSPENDED</p>
+        <div class="pause-btn-group">
+          <button id="btnPauseResume" class="cyber-menu-btn btn-resume">
+            <span class="menu-btn-icon">▶</span>
+            <div class="menu-btn-content">
+              <span class="menu-btn-text">RESUME</span>
+              <span class="menu-btn-sub">ゲーム再開 (または画面クリック)</span>
+            </div>
+          </button>
+          <button id="btnPauseQuit" class="cyber-menu-btn btn-quit">
+            <span class="menu-btn-icon">⏏</span>
+            <div class="menu-btn-content">
+              <span class="menu-btn-text">QUIT TITLE</span>
+              <span class="menu-btn-sub">タイトルへ戻る</span>
+            </div>
+          </button>
+        </div>
+        <div class="pause-hint">PRESS [P] / [SPACE] OR CLICK SCREEN TO RESUME</div>
+      </div>
+    </div>
+
+    <!-- タイトル画面オーバーレイ -->
+    <div class="title-overlay" id="titleOverlay">
+      <div class="title-box">
+        <div class="title-badge">CYBERPUNK DEFINITIVE EDITION</div>
+        <h1 class="title-logo">Neon Pulse Barrier<span class="title-logo-sub">-最終防衛ライン-</span></h1>
+        <p class="title-sub">CYBERPUNK DEFENSE BREAKER // FULL RELEASE</p>
+        <div class="title-hiscore" id="titleHiScore">HI-SCORE: 00000</div>
+
+        <div class="diff-section-title">SELECT DIFFICULTY</div>
+        <div class="diff-btn-group">
+          <button class="cyber-diff-btn btn-easy" data-diff="EASY">
+            <span class="diff-name">EASY</span>
+            <span class="diff-desc">LIFE: 10 / SPEED: 0.5x</span>
+            <span class="diff-tag">CASUAL</span>
+          </button>
+          <button class="cyber-diff-btn btn-normal" data-diff="NORMAL">
+            <span class="diff-name">NORMAL</span>
+            <span class="diff-desc">LIFE: 3 / SPEED: 1.0x</span>
+            <span class="diff-tag">STANDARD</span>
+          </button>
+          <button class="cyber-diff-btn btn-hard" data-diff="HARD">
+            <span class="diff-name">HARD</span>
+            <span class="diff-desc">LIFE: 1 / SPEED: 1.3x</span>
+            <span class="diff-tag">DESPAIR</span>
+          </button>
+        </div>
+
+        <div class="title-instruction">
+          CONTROLS: [◀ / ▶] or [A / D] or MOUSE / TOUCH PAD<br>
+          [B] EMERGENCY BOMB (電磁バースト) &nbsp;|&nbsp; [SPACE / P] PAUSE MENU<br>
+          BREAK ALL NEON DEFENSES TO RESTORE HUMANITY
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右余白：右移動ボタン ＆ ボムボタン -->
+  <button id="btnRight" class="cyber-btn btn-right" aria-label="右移動">
+    <span class="btn-arrow">▶</span>
+    <span class="btn-label">RIGHT</span>
+  </button>
+  <button id="btnBombRight" class="cyber-btn btn-bomb btn-bomb-right" aria-label="ボム発動">
+    <span class="btn-bomb-icon">💥</span>
+    <span class="btn-label">BOMB [B]</span>
+    <span class="btn-bomb-stock">×1</span>
+  </button>
+
+  <script>
+    // ==========================================
+    // 0. マスター音量・オーディオ一括管理システム（初期値50%・完全同期）
+    // ==========================================
+    let masterVolume = 0.5; // 初期音量：50%
+    let prevVolume = 0.5;
+    let isMuted = false;
+
+    function setMasterVolume(val) {
+      val = Math.max(0, Math.min(1, Number(val)));
+      masterVolume = val;
+      if (Sound.ctx && Sound.masterGain) {
+        try {
+          Sound.masterGain.gain.setValueAtTime(masterVolume, Sound.ctx.currentTime);
+        } catch (e) {
+          Sound.masterGain.gain.value = masterVolume;
+        }
+      }
+      if (BGM.audio) {
+        BGM.audio.volume = masterVolume;
+      }
+      updateVolumeUI();
+    }
+
+    function toggleMute() {
+      Sound.init();
+      if (isMuted || masterVolume === 0) {
+        isMuted = false;
+        const restoreVol = (prevVolume > 0) ? prevVolume : 0.5;
+        setMasterVolume(restoreVol);
+      } else {
+        prevVolume = (masterVolume > 0) ? masterVolume : 0.5;
+        isMuted = true;
+        setMasterVolume(0);
+      }
+    }
+
+    function handleVolumeSliderInput(e) {
+      Sound.init();
+      const val = parseFloat(e.target.value);
+      if (val > 0) {
+        isMuted = false;
+        prevVolume = val;
+      } else {
+        isMuted = true;
+      }
+      setMasterVolume(val);
+    }
+
+    function updateVolumeUI() {
+      const slider = document.getElementById('volumeSlider');
+      const label = document.getElementById('volumeValue');
+      const icon = document.getElementById('muteIcon');
+      const pct = Math.round(masterVolume * 100);
+
+      if (slider && Math.abs(parseFloat(slider.value) - masterVolume) > 0.001) {
+        slider.value = masterVolume;
+      }
+      if (label) {
+        label.textContent = `${pct}%`;
+      }
+      if (icon) {
+        if (masterVolume === 0 || isMuted) {
+          icon.textContent = '🔇';
+        } else if (masterVolume < 0.4) {
+          icon.textContent = '🔉';
+        } else {
+          icon.textContent = '🔊';
+        }
+      }
+    }
+
+    // ==========================================
+    // 0.1 スコア ＆ ハイスコア（LocalStorage自動保存）＆ 無限ネオンコンボ
+    // ==========================================
+    const HIGH_SCORE_KEY = 'neon_pulse_barrier_hiscore';
+
+    function loadHighScore() {
+      try {
+        const saved = localStorage.getItem(HIGH_SCORE_KEY);
+        if (saved !== null) {
+          const val = parseInt(saved, 10);
+          if (!isNaN(val) && val >= 0) return val;
+        }
+      } catch (e) {}
+      return 0;
+    }
+
+    function saveHighScore(val) {
+      try {
+        localStorage.setItem(HIGH_SCORE_KEY, String(val));
+      } catch (e) {}
+    }
+
+    let score = 0;
+    let highScore = loadHighScore();
+    let currentCombo = 0;
+    let maxCombo = 0;
+    let comboAnimTimer = 0;
+    let rainbowFlashTimer = 0;
+    let resultTimer = 0;
+    const RESULT_DURATION = 300; // 5秒間（300フレーム）
+
+    function formatScore(num) {
+      return String(Math.max(0, Math.floor(num))).padStart(5, '0');
+    }
+
+    function updateTitleHiScoreUI() {
+      const el = document.getElementById('titleHiScore');
+      if (el) {
+        el.textContent = `HI-SCORE: ${formatScore(highScore)}`;
+      }
+    }
+
+    // スコア加算 ＆ コンボ倍率ボーナス計算
+    function addScore(basePoints, targetX, targetY) {
+      const comboMult = Math.max(1, currentCombo);
+      const earned = basePoints * comboMult;
+      score += earned;
+      if (score > highScore) {
+        highScore = score;
+        saveHighScore(highScore);
+        updateTitleHiScoreUI();
+      }
+      if (targetX !== undefined && targetY !== undefined) {
+        const text = (currentCombo > 1) ? `+${earned} (x${currentCombo} COMBO!)` : `+${earned}`;
+        const color = (currentCombo >= 10) ? '#ffe600' : '#00f0ff';
+        addFloatingText(text, targetX, targetY - 15, color);
+      }
+      return earned;
+    }
+
+    // コンボ加算 ＆ 10回おき無限進化ファンファーレ判定
+    function registerComboHit(targetX, targetY) {
+      currentCombo++;
+      if (currentCombo > maxCombo) {
+        maxCombo = currentCombo;
+      }
+      comboAnimTimer = 22;
+
+      // 10回おきの大台チェック（10, 20, 30... 100）
+      if (currentCombo % 10 === 0 && currentCombo > 0) {
+        Sound.playComboMilestone(currentCombo);
+        if (currentCombo >= 100) {
+          rainbowFlashTimer = 90; // 1.5秒間のレインボーフラッシュ！
+          addFloatingText(`★ ${currentCombo} COMBO! COSMIC GENESIS! ★`, CANVAS_WIDTH / 2, 220, '#ff0000', 48);
+        } else {
+          addFloatingText(`★ ${currentCombo} COMBO MILESTONE! ★`, CANVAS_WIDTH / 2, 220, '#ff0000', 48);
+        }
+      }
+    }
+
+    // ==========================================
+    // 1. Web Audio API による完全合成効果音マネージャー
+    // （外部音声ファイル不要・著作権トラブル100%なし・マスターゲイン連動）
+    // ==========================================
+    const Sound = {
+      ctx: null,
+      masterGain: null,
+
+      init() {
+        if (!this.ctx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            this.ctx = new AudioContextClass();
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.setValueAtTime(masterVolume, this.ctx.currentTime);
+            this.masterGain.connect(this.ctx.destination);
+          }
+        }
+        if (this.ctx && !this.masterGain) {
+          this.masterGain = this.ctx.createGain();
+          this.masterGain.gain.setValueAtTime(masterVolume, this.ctx.currentTime);
+          this.masterGain.connect(this.ctx.destination);
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume().catch(() => {});
+        }
+      },
+
+      get outNode() {
+        Sound.init();
+        return Sound.masterGain || (Sound.ctx ? Sound.ctx.destination : null);
+      },
+
+      // タイピング音（文字送りカチッカチッ）
+      playKeyClick() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1100 + Math.random() * 450, now);
+        gain.gain.setValueAtTime(0.045, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.022);
+        osc.connect(gain);
+        gain.connect(this.outNode);
+        osc.start(now);
+        osc.stop(now + 0.022);
+      },
+
+      // 難易度選択・ステージ進行決定音（サイバーチャージ）
+      playBtnSelect() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.16);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+        osc.connect(gain);
+        gain.connect(this.outNode);
+        osc.start(now);
+        osc.stop(now + 0.16);
+      },
+
+      // パドル反射音（ピコーン）
+      playPaddleHit() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+        osc.connect(gain);
+        gain.connect(this.outNode);
+
+        osc.start(now);
+        osc.stop(now + 0.08);
+      },
+
+      // 通常ブロック破壊音（ピロリン！）
+      playBlockBreak() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(660, now);
+        osc.frequency.exponentialRampToValueAtTime(1320, now + 0.09);
+
+        gain.gain.setValueAtTime(0.22, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+        osc.connect(gain);
+        gain.connect(this.outNode);
+
+        osc.start(now);
+        osc.stop(now + 0.09);
+      },
+
+      // 耐久ブロック打撃音（金属キィン！）
+      playMetalHit() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(1600, now);
+        osc.frequency.exponentialRampToValueAtTime(2400, now + 0.04);
+
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+        osc.connect(gain);
+        gain.connect(this.outNode);
+
+        osc.start(now);
+        osc.stop(now + 0.05);
+      },
+
+      // マトリョーシカブロック分裂音（ピシュンッ！）
+      playBlockSplit() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(950, now);
+        osc.frequency.exponentialRampToValueAtTime(320, now + 0.12);
+
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+        osc.connect(gain);
+        gain.connect(this.outNode);
+
+        osc.start(now);
+        osc.stop(now + 0.12);
+      },
+
+      // 敵エイリアンの急降下サイレン音（ヒュオオオ…）
+      playAlienDive() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(580, now);
+        osc.frequency.exponentialRampToValueAtTime(180, now + 0.45);
+
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+        osc.connect(gain);
+        gain.connect(this.outNode);
+
+        osc.start(now);
+        osc.stop(now + 0.45);
+      },
+
+      // 敵弾発射音（ピュッ！）
+      playEnemyShoot() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(260, now + 0.07);
+
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+        osc.connect(gain);
+        gain.connect(this.outNode);
+
+        osc.start(now);
+        osc.stop(now + 0.07);
+      },
+
+      // リング全方位弾幕発射音（ビシュウゥゥ！）
+      playRingShoot() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(1200, now);
+        osc.frequency.exponentialRampToValueAtTime(350, now + 0.22);
+
+        gain.gain.setValueAtTime(0.32, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+        osc.connect(gain);
+        gain.connect(this.outNode);
+
+        osc.start(now);
+        osc.stop(now + 0.22);
+      },
+
+      // 敵撃墜音（ドカーン！）
+      playBigExplosion() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const bufferSize = Math.floor(this.ctx.sampleRate * 0.35);
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.25));
+        }
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(600, now);
+        filter.frequency.exponentialRampToValueAtTime(80, now + 0.35);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.outNode);
+
+        noise.start(now);
+      },
+
+      // 被弾・衝突クラッシュ音（ドシィン！）
+      playCrash() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(140, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.28);
+
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+        osc.connect(gain);
+        gain.connect(this.outNode);
+
+        osc.start(now);
+        osc.stop(now + 0.28);
+      },
+
+      // カプセル出現音（キラリン）
+      playItemSpawn() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(1760, now + 0.08);
+
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+        osc.connect(gain);
+        gain.connect(this.outNode);
+
+        osc.start(now);
+        osc.stop(now + 0.08);
+      },
+
+      // カプセル取得音：低速化（ポヨン〜）
+      playSlowdown() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(250, now + 0.25);
+
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+        osc.connect(gain);
+        gain.connect(this.outNode);
+
+        osc.start(now);
+        osc.stop(now + 0.25);
+      },
+
+      // 【花火サウンド①：情緒ある上昇笛音「ヒュルルル…」】
+      playFireworkAscent() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const dur = 0.55;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(350, now);
+        osc.frequency.exponentialRampToValueAtTime(1650, now + dur);
+
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(450, now);
+        filter.frequency.exponentialRampToValueAtTime(1800, now + dur);
+        filter.Q.value = 5.0;
+
+        gain.gain.setValueAtTime(0.02, now);
+        gain.gain.linearRampToValueAtTime(0.18, now + dur * 0.7);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.outNode);
+
+        osc.start(now);
+        osc.stop(now + dur);
+      },
+
+      // 【花火サウンド②：一発大輪の炸裂音「ポン！」】
+      playFireworkBloom() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(290, now);
+        osc.frequency.exponentialRampToValueAtTime(36, now + 0.22);
+        gain.gain.setValueAtTime(0.48, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        osc.connect(gain);
+        gain.connect(this.outNode);
+        osc.start(now);
+        osc.stop(now + 0.22);
+
+        const sub = this.ctx.createOscillator();
+        const subGain = this.ctx.createGain();
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(95, now);
+        sub.frequency.exponentialRampToValueAtTime(22, now + 0.6);
+        subGain.gain.setValueAtTime(0.55, now);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+        sub.connect(subGain);
+        subGain.connect(this.outNode);
+        sub.start(now);
+        sub.stop(now + 0.6);
+
+        const bufSize = Math.floor(this.ctx.sampleRate * 0.35);
+        const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) {
+          d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * 0.3));
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buf;
+        const noiseFilter = this.ctx.createBiquadFilter();
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.value = 2400;
+        noiseFilter.Q.value = 3;
+        const nGain = this.ctx.createGain();
+        nGain.gain.setValueAtTime(0.2, now);
+        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        noise.connect(noiseFilter);
+        noiseFilter.connect(nGain);
+        nGain.connect(this.outNode);
+        noise.start(now);
+      },
+
+      // 【花火サウンド③：連続破裂フィナーレ「パンパンパン！」】
+      playFireworkBarrage() {
+        if (!this.ctx) return;
+        const startTime = this.ctx.currentTime;
+        const burstDelays = [0, 0.08, 0.16, 0.25];
+        const baseFreqs = [380, 440, 320, 280];
+
+        burstDelays.forEach((delay, idx) => {
+          const t = startTime + delay;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(baseFreqs[idx], t);
+          osc.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+
+          gain.gain.setValueAtTime(0.38, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+
+          osc.connect(gain);
+          gain.connect(this.outNode);
+          osc.start(t);
+          osc.stop(t + 0.15);
+        });
+
+        const sub = this.ctx.createOscillator();
+        const subGain = this.ctx.createGain();
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(110, startTime + 0.2);
+        sub.frequency.exponentialRampToValueAtTime(25, startTime + 0.7);
+        subGain.gain.setValueAtTime(0.55, startTime + 0.2);
+        subGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.7);
+        sub.connect(subGain);
+        subGain.connect(this.outNode);
+        sub.start(startTime + 0.2);
+        sub.stop(startTime + 0.7);
+      },
+
+      // 画面グリッチ時のサイバーノイズ音（ザザッ！）
+      playGlitchNoise() {
+        if (!this.ctx) return;
+        const bufferSize = Math.floor(this.ctx.sampleRate * 0.08);
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * 0.35;
+        }
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+
+        noise.connect(gain);
+        gain.connect(this.outNode);
+
+        noise.start(this.ctx.currentTime);
+      },
+
+      // ワンアップ取得音（パパラパッパ〜！）
+      playOneUp() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [698.46, 880.00, 1046.50, 1396.91];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const t = now + idx * 0.08;
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, t);
+
+          const dur = (idx === notes.length - 1) ? 0.45 : 0.15;
+          gain.gain.setValueAtTime(0.3, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+          osc.connect(gain);
+          gain.connect(this.outNode);
+
+          osc.start(t);
+          osc.stop(t + dur);
+        });
+      },
+
+      // 緊急ボム発動音（「ズバァァァン！」サイバー感溢れるド派手な重低音爆発）
+      playBombBurst() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        // 1. 超重低音サブベース（220Hz -> 24Hz 急降下衝撃波）
+        const subOsc = this.ctx.createOscillator();
+        const subGain = this.ctx.createGain();
+        subOsc.type = 'sine';
+        subOsc.frequency.setValueAtTime(220, now);
+        subOsc.frequency.exponentialRampToValueAtTime(24, now + 0.85);
+        subGain.gain.setValueAtTime(0.75, now);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+        subOsc.connect(subGain);
+        subGain.connect(this.outNode);
+        subOsc.start(now);
+        subOsc.stop(now + 0.9);
+
+        // 2. ディストーション・ローミッドのパンチ（鋸波）
+        const sawOsc = this.ctx.createOscillator();
+        const sawGain = this.ctx.createGain();
+        sawOsc.type = 'sawtooth';
+        sawOsc.frequency.setValueAtTime(140, now);
+        sawOsc.frequency.exponentialRampToValueAtTime(20, now + 0.6);
+        sawGain.gain.setValueAtTime(0.55, now);
+        sawGain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+        sawOsc.connect(sawGain);
+        sawGain.connect(this.outNode);
+        sawOsc.start(now);
+        sawOsc.stop(now + 0.65);
+
+        // 3. レゾナンスノイズ・電磁スウィープ（ズバァァァン！の引き裂き感）
+        const bufferSize = Math.floor(this.ctx.sampleRate * 0.95);
+        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+        const whiteNoise = this.ctx.createBufferSource();
+        whiteNoise.buffer = noiseBuffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.Q.setValueAtTime(5.5, now);
+        filter.frequency.setValueAtTime(4500, now);
+        filter.frequency.exponentialRampToValueAtTime(65, now + 0.8);
+
+        const noiseGain = this.ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.7, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+
+        whiteNoise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(this.outNode);
+
+        whiteNoise.start(now);
+        whiteNoise.stop(now + 0.85);
+      },
+
+      // ボムカプセル取得音（電磁チャージ＋クリスタルチャイム）
+      playBombPickup() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [440.00, 554.37, 659.25, 880.00, 1108.73].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const t = now + idx * 0.045;
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.3, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+          osc.connect(gain);
+          gain.connect(this.outNode);
+          osc.start(t);
+          osc.stop(t + 0.16);
+        });
+      },
+
+      // ミス落下音（ブブーと下降）
+      playBallLost() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.linearRampToValueAtTime(150, now + 0.14);
+        osc.frequency.linearRampToValueAtTime(55, now + 0.35);
+
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.linearRampToValueAtTime(0.2, now + 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        osc.connect(gain);
+        gain.connect(this.outNode);
+
+        osc.start(now);
+        osc.stop(now + 0.35);
+      },
+
+      // 【新設：ステージクリア専用・勝利のファンファーレ「テテテテ、テッテレー！」】
+      playVictoryFanfare() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        // メロディ構成: 「テ(G4)・テ(G4)・テ(G4)・テ(C5)、テッ(G4)・テ(C5)・レー(E5+G5+C6大和音)！」
+        const notes = [
+          { t: 0.00, dur: 0.08, freq: 392.00 }, // ソ (G4)
+          { t: 0.09, dur: 0.08, freq: 392.00 }, // ソ (G4)
+          { t: 0.18, dur: 0.08, freq: 392.00 }, // ソ (G4)
+          { t: 0.27, dur: 0.15, freq: 523.25 }, // ド (C5)
+          { t: 0.50, dur: 0.11, freq: 392.00 }, // ソ (G4)
+          { t: 0.63, dur: 0.13, freq: 523.25 }, // ド (C5)
+          { t: 0.78, dur: 0.85, freq: 659.25, chord: [523.25, 659.25, 783.99, 1046.50] } // ミ(E5)＋ド・ミ・ソ・ド豪華和音
+        ];
+
+        notes.forEach(n => {
+          const noteStart = now + n.t;
+
+          if (n.chord) {
+            // フィナーレのド派手な大和音＋重低音「ドーン！」
+            n.chord.forEach((f, cIdx) => {
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+              const filter = this.ctx.createBiquadFilter();
+
+              osc.type = (cIdx % 2 === 0) ? 'sawtooth' : 'triangle';
+              osc.frequency.setValueAtTime(f, noteStart);
+
+              filter.type = 'lowpass';
+              filter.frequency.setValueAtTime(3200, noteStart);
+              filter.frequency.exponentialRampToValueAtTime(1200, noteStart + n.dur);
+
+              gain.gain.setValueAtTime(0.25, noteStart);
+              gain.gain.exponentialRampToValueAtTime(0.001, noteStart + n.dur);
+
+              osc.connect(filter);
+              filter.connect(gain);
+              gain.connect(this.outNode);
+
+              osc.start(noteStart);
+              osc.stop(noteStart + n.dur);
+            });
+
+            // ド迫力サブベース（ドーン！）
+            const sub = this.ctx.createOscillator();
+            const subGain = this.ctx.createGain();
+            sub.type = 'sine';
+            sub.frequency.setValueAtTime(130.81, noteStart); // C3
+            sub.frequency.exponentialRampToValueAtTime(40, noteStart + 0.65);
+            subGain.gain.setValueAtTime(0.5, noteStart);
+            subGain.gain.exponentialRampToValueAtTime(0.001, noteStart + 0.65);
+            sub.connect(subGain);
+            subGain.connect(this.outNode);
+            sub.start(noteStart);
+            sub.stop(noteStart + 0.65);
+
+          } else {
+            // 単音（ブラス風の歯切れ良いシンセ音）
+            const oscSaw = this.ctx.createOscillator();
+            const oscTri = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const filter = this.ctx.createBiquadFilter();
+
+            oscSaw.type = 'sawtooth';
+            oscSaw.frequency.setValueAtTime(n.freq, noteStart);
+
+            oscTri.type = 'triangle';
+            oscTri.frequency.setValueAtTime(n.freq, noteStart);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(2800, noteStart);
+            filter.frequency.exponentialRampToValueAtTime(900, noteStart + n.dur);
+
+            gain.gain.setValueAtTime(0.32, noteStart);
+            gain.gain.exponentialRampToValueAtTime(0.001, noteStart + n.dur);
+
+            oscSaw.connect(filter);
+            oscTri.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.outNode);
+
+            oscSaw.start(noteStart);
+            oscSaw.stop(noteStart + n.dur);
+            oscTri.start(noteStart);
+            oscTri.stop(noteStart + n.dur);
+          }
+        });
+      },
+
+      // 5面クリア時ファンファーレ
+      playStageClear() {
+        if (!this.ctx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+        const startTime = this.ctx.currentTime;
+
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const noteTime = startTime + idx * 0.11;
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, noteTime);
+
+          const dur = (idx === notes.length - 1) ? 0.65 : 0.20;
+          gain.gain.setValueAtTime(0.35, noteTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, noteTime + dur);
+
+          osc.connect(gain);
+          gain.connect(this.outNode);
+
+          osc.start(noteTime);
+          osc.stop(noteTime + dur);
+        });
+      },
+
+      // 残り5個警告音（ピローン！）
+      playWarning() {
+        if (!this.ctx) return;
+        const startTime = this.ctx.currentTime;
+        [880, 1318.51].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const noteTime = startTime + idx * 0.12;
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, noteTime);
+
+          gain.gain.setValueAtTime(0.4, noteTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.25);
+
+          osc.connect(gain);
+          gain.connect(this.outNode);
+
+          osc.start(noteTime);
+          osc.stop(noteTime + 0.25);
+        });
+      },
+
+      // ゲームオーバー音（低音下降サイバーコード）
+      playGameOver() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [220, 196, 174.61, 146.83, 110].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const t = now + idx * 0.16;
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.28, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+          osc.connect(gain);
+          gain.connect(this.outNode);
+          osc.start(t);
+          osc.stop(t + 0.35);
+        });
+      },
+
+      // 10回おき無限進化ファンファーレ（コンボ数に応じて周波数・音階・音数・和音が自動計算で超豪華に進化）
+      playComboMilestone(combo) {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const level = Math.floor(combo / 10); // 1 ~ 10...
+
+        if (level >= 10) {
+          // ★ 100コンボ（およびそれ以上の大台）到達：最高の宇宙創生ファンファーレ！
+          this.playCosmicGenesisFanfare();
+          return;
+        }
+
+        // 1. 【ドレミの音階（周波数）自動上昇計算式】
+        // 10コンボ(Level 1)のC4(261.63Hz)から、各レベルごとに明るい音階へシフト（レベル9ではG5=783.99Hzまで上昇）
+        const rootNotes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99];
+        const baseFreq = rootNotes[Math.min(rootNotes.length - 1, level - 1)];
+
+        // 2. 【音の数・メロディ音符数の自動増加】
+        // Level 1: 3音（ド・ミ・ソ）から、Level 9: 11音の華麗なクリスタルアルペジオへ自動拡大
+        const noteCount = Math.min(11, 2 + level);
+
+        // 明るく勝利感あふれるメジャー・ペンタトニック音階インターバル（半音換算）
+        const scaleIntervals = [0, 4, 7, 12, 16, 19, 24, 28, 31, 36, 40];
+
+        // 3. 【リアルタイム波形合成によるアルペジオ演奏】
+        for (let i = 0; i < noteCount; i++) {
+          const noteStart = now + i * 0.052;
+          const isLastNote = (i === noteCount - 1);
+          const dur = isLastNote ? (0.35 + level * 0.04) : 0.11;
+          const semitone = scaleIntervals[i % scaleIntervals.length];
+          const freq = baseFreq * Math.pow(2, semitone / 12);
+
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const filter = this.ctx.createBiquadFilter();
+
+          // 高次レベルほどきらびやかな波形と明るい倍音フィルターを採用
+          osc.type = (i % 2 === 0) ? 'triangle' : 'sawtooth';
+          osc.frequency.setValueAtTime(freq, noteStart);
+          if (isLastNote) {
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.015, noteStart + dur);
+          }
+
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(3200 + level * 400, noteStart);
+
+          const noteVol = isLastNote ? 0.35 : 0.22;
+          gain.gain.setValueAtTime(noteVol, noteStart);
+          gain.gain.exponentialRampToValueAtTime(0.001, noteStart + dur);
+
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.outNode);
+
+          osc.start(noteStart);
+          osc.stop(noteStart + dur);
+
+          // 4. 【レベルに応じた和音（ハーモニー）の重層化】
+          // レベル3以上：ラスト音に完全5度の上音を追加
+          if (level >= 3 && isLastNote) {
+            const h5 = this.ctx.createOscillator();
+            const h5Gain = this.ctx.createGain();
+            h5.type = 'sine';
+            h5.frequency.setValueAtTime(freq * 1.498, noteStart);
+            h5Gain.gain.setValueAtTime(0.18, noteStart);
+            h5Gain.gain.exponentialRampToValueAtTime(0.001, noteStart + dur);
+            h5.connect(h5Gain);
+            h5Gain.connect(this.outNode);
+            h5.start(noteStart);
+            h5.stop(noteStart + dur);
+          }
+
+          // レベル5以上：長3度の上音を追加して豪華なメジャートライアド和音化
+          if (level >= 5 && isLastNote) {
+            const h3 = this.ctx.createOscillator();
+            const h3Gain = this.ctx.createGain();
+            h3.type = 'triangle';
+            h3.frequency.setValueAtTime(freq * 1.26, noteStart);
+            h3Gain.gain.setValueAtTime(0.16, noteStart);
+            h3Gain.gain.exponentialRampToValueAtTime(0.001, noteStart + dur);
+            h3.connect(h3Gain);
+            h3Gain.connect(this.outNode);
+            h3.start(noteStart);
+            h3.stop(noteStart + dur);
+          }
+
+          // レベル7以上：1オクターブ上のきらめきクリスタル高音を追加
+          if (level >= 7 && (isLastNote || i === noteCount - 2)) {
+            const hOct = this.ctx.createOscillator();
+            const hOctGain = this.ctx.createGain();
+            hOct.type = 'sine';
+            hOct.frequency.setValueAtTime(freq * 2.0, noteStart);
+            hOctGain.gain.setValueAtTime(0.14, noteStart);
+            hOctGain.gain.exponentialRampToValueAtTime(0.001, noteStart + dur);
+            hOct.connect(hOctGain);
+            hOctGain.connect(this.outNode);
+            hOct.start(noteStart);
+            hOct.stop(noteStart + dur);
+          }
+        }
+
+        // 5. 【サブ低音パンチ（大台到達のアタック感）】
+        const sub = this.ctx.createOscillator();
+        const subGain = this.ctx.createGain();
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(150 + level * 12, now);
+        sub.frequency.exponentialRampToValueAtTime(32, now + 0.32);
+        subGain.gain.setValueAtTime(0.48, now);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+        sub.connect(subGain);
+        subGain.connect(this.outNode);
+        sub.start(now);
+        sub.stop(now + 0.32);
+      },
+
+      // 100コンボ達成専用：宇宙創生ファンファーレ（超重低音＋全光彩アルペジオ＋神和音）
+      playCosmicGenesisFanfare() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        // 1. 宇宙重低音ビッグバン
+        const sub = this.ctx.createOscillator();
+        const subGain = this.ctx.createGain();
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(180, now);
+        sub.frequency.exponentialRampToValueAtTime(20, now + 1.2);
+        subGain.gain.setValueAtTime(0.8, now);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+        sub.connect(subGain);
+        subGain.connect(this.outNode);
+        sub.start(now);
+        sub.stop(now + 1.2);
+
+        // 2. 超高速神速アルペジオ（11音の光の階段）
+        const cosmicNotes = [
+          261.63, 329.63, 392.00, 493.88, 587.33,
+          659.25, 783.99, 987.77, 1046.50, 1318.51, 1567.98
+        ];
+        cosmicNotes.forEach((freq, idx) => {
+          const t = now + idx * 0.055;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = (idx % 2 === 0) ? 'sawtooth' : 'triangle';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.32, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+          osc.connect(gain);
+          gain.connect(this.outNode);
+          osc.start(t);
+          osc.stop(t + 0.25);
+        });
+
+        // 3. フィナーレの宇宙大調和・豪華大和音
+        const chordStart = now + cosmicNotes.length * 0.055;
+        const finalChord = [523.25, 659.25, 783.99, 1046.50, 1318.51, 2093.00];
+        finalChord.forEach((f, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const filter = this.ctx.createBiquadFilter();
+
+          osc.type = (idx % 2 === 0) ? 'sawtooth' : 'triangle';
+          osc.frequency.setValueAtTime(f, chordStart);
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(4000, chordStart);
+          filter.frequency.exponentialRampToValueAtTime(1200, chordStart + 1.6);
+
+          gain.gain.setValueAtTime(0.28, chordStart);
+          gain.gain.exponentialRampToValueAtTime(0.001, chordStart + 1.6);
+
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.outNode);
+          osc.start(chordStart);
+          osc.stop(chordStart + 1.6);
+        });
+      },
+
+      // 戦績評価・リザルト用ドラムロール ＆ シンバルクラッシュ ＆ ブラス大和音
+      playDrumRoll() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const duration = 2.4; // 2.4秒間のクレッシェンド・ドラムロール
+        const hitInterval = 0.045; // 1秒間に約22打の高速ロール
+        const totalHits = Math.floor(duration / hitInterval);
+
+        for (let i = 0; i < totalHits; i++) {
+          const t = now + i * hitInterval;
+          const progress = i / totalHits;
+          const gainVal = 0.04 + progress * 0.28;
+
+          const bufLen = Math.floor(this.ctx.sampleRate * 0.035);
+          const buf = this.ctx.createBuffer(1, bufLen, this.ctx.sampleRate);
+          const d = buf.getChannelData(0);
+          for (let j = 0; j < bufLen; j++) {
+            d[j] = (Math.random() * 2 - 1) * Math.exp(-j / (bufLen * 0.25));
+          }
+
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = buf;
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.setValueAtTime(1800 + progress * 400, t);
+          filter.Q.value = 2.5;
+
+          const gain = this.ctx.createGain();
+          gain.gain.setValueAtTime(gainVal, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.outNode);
+
+          noise.start(t);
+          noise.stop(t + 0.035);
+        }
+
+        // ドラムロールの頂点でシンバルクラッシュ＆大和音！(now + duration)
+        const crashTime = now + duration;
+
+        // 1. シンバル金属ノイズ
+        const cymBufLen = Math.floor(this.ctx.sampleRate * 1.2);
+        const cymBuf = this.ctx.createBuffer(1, cymBufLen, this.ctx.sampleRate);
+        const cd = cymBuf.getChannelData(0);
+        for (let j = 0; j < cymBufLen; j++) {
+          cd[j] = (Math.random() * 2 - 1) * Math.exp(-j / (cymBufLen * 0.35));
+        }
+        const cymNoise = this.ctx.createBufferSource();
+        cymNoise.buffer = cymBuf;
+
+        const cymFilter = this.ctx.createBiquadFilter();
+        cymFilter.type = 'highpass';
+        cymFilter.frequency.setValueAtTime(4500, crashTime);
+
+        const cymGain = this.ctx.createGain();
+        cymGain.gain.setValueAtTime(0.35, crashTime);
+        cymGain.gain.exponentialRampToValueAtTime(0.001, crashTime + 1.2);
+
+        cymNoise.connect(cymFilter);
+        cymFilter.connect(cymGain);
+        cymGain.connect(this.outNode);
+        cymNoise.start(crashTime);
+        cymNoise.stop(crashTime + 1.2);
+
+        // 2. ズバァン！と鳴り響く歓喜のブラスファンファーレ
+        const brassNotes = [523.25, 659.25, 783.99, 1046.50];
+        brassNotes.forEach(freq => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(freq, crashTime);
+          gain.gain.setValueAtTime(0.25, crashTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, crashTime + 1.0);
+          osc.connect(gain);
+          gain.connect(this.outNode);
+          osc.start(crashTime);
+          osc.stop(crashTime + 1.0);
+        });
+
+        // 3. 重低音バスドラム
+        const kick = this.ctx.createOscillator();
+        const kickGain = this.ctx.createGain();
+        kick.type = 'sine';
+        kick.frequency.setValueAtTime(150, crashTime);
+        kick.frequency.exponentialRampToValueAtTime(30, crashTime + 0.4);
+        kickGain.gain.setValueAtTime(0.6, crashTime);
+        kickGain.gain.exponentialRampToValueAtTime(0.001, crashTime + 0.4);
+        kick.connect(kickGain);
+        kickGain.connect(this.outNode);
+        kick.start(crashTime);
+        kick.stop(crashTime + 0.4);
+      }
+    };
+
+    // ==========================================
+    // 2. 【.m4a完全対応＆厳格MIME指定型 BGMマネージャー】
+    // ==========================================
+    const BGM = {
+      audio: null,
+      currentTrackKey: null,
+      playbackRate: 1.0,
+
+      init() {
+        if (!this.audio) {
+          this.audio = document.getElementById('bgmAudio');
+          if (!this.audio) {
+            this.audio = document.createElement('audio');
+            this.audio.id = 'bgmAudio';
+            document.body.appendChild(this.audio);
+          }
+          this.audio.loop = true;
+          this.audio.volume = masterVolume;
+          this.audio.preload = 'auto';
+        } else {
+          this.audio.volume = masterVolume;
+        }
+      },
+
+      setVolume(vol) {
+        if (this.audio) {
+          this.audio.volume = Math.max(0, Math.min(1, vol));
+        }
+      },
+
+      // 指定トラック（title, stage1〜stage5, credits）を自動認識して再生
+      playTrack(trackKey, force = false) {
+        this.init();
+        if (!this.audio) return;
+
+        if (this.currentTrackKey === trackKey && !force && !this.audio.paused) {
+          return;
+        }
+
+        this.currentTrackKey = trackKey;
+        this.playbackRate = 1.0;
+
+        // 既存の再生を停止
+        try {
+          this.audio.pause();
+          this.audio.currentTime = 0;
+        } catch (e) {}
+
+        const formats = [
+          { ext: 'm4a', type: 'audio/mp4' },
+          { ext: 'mp3', type: 'audio/mpeg' },
+          { ext: 'wav', type: 'audio/wav' }
+        ];
+
+        let hasAdvanced = false;
+
+        const tryPlayFormat = (idx) => {
+          if (this.currentTrackKey !== trackKey) return;
+          if (idx >= formats.length) {
+            // 全ての形式が存在しない場合でもゲームをクラッシュさせずに安全に終了
+            return;
+          }
+
+          const currentFmt = formats[idx];
+          const audioPath = `bgm_${trackKey}.${currentFmt.ext}`;
+
+          // 子要素sourceをクリア＆新形式のsourceを登録
+          while (this.audio.firstChild) {
+            this.audio.removeChild(this.audio.firstChild);
+          }
+
+          const s = document.createElement('source');
+          s.src = audioPath;
+          s.type = currentFmt.type;
+          this.audio.appendChild(s);
+
+          this.audio.src = audioPath;
+          this.audio.playbackRate = this.playbackRate;
+          this.audio.volume = masterVolume;
+          this.audio.load();
+
+          hasAdvanced = false;
+
+          const advanceNext = () => {
+            if (hasAdvanced) return;
+            hasAdvanced = true;
+            this.audio.removeEventListener('error', advanceNext);
+            this.audio.removeEventListener('canplay', onCanPlay);
+            this.audio.removeEventListener('canplaythrough', onCanPlay);
+            tryPlayFormat(idx + 1);
+          };
+
+          const onCanPlay = () => {
+            if (hasAdvanced) return;
+            hasAdvanced = true;
+            this.audio.removeEventListener('error', advanceNext);
+            this.audio.removeEventListener('canplay', onCanPlay);
+            this.audio.removeEventListener('canplaythrough', onCanPlay);
+
+            if (this.currentTrackKey !== trackKey) return;
+            this.audio.playbackRate = this.playbackRate;
+            this.audio.volume = masterVolume;
+            const p = this.audio.play();
+            if (p !== undefined) {
+              p.catch(() => {});
+            }
+          };
+
+          this.audio.addEventListener('error', advanceNext, { once: true });
+          this.audio.addEventListener('canplay', onCanPlay, { once: true });
+          this.audio.addEventListener('canplaythrough', onCanPlay, { once: true });
+
+          const p = this.audio.play();
+          if (p !== undefined) {
+            p.catch(() => {});
+          }
+        };
+
+        tryPlayFormat(0);
+      },
+
+      setRate(rate) {
+        this.playbackRate = rate;
+        if (this.audio) {
+          this.audio.playbackRate = rate;
+        }
+      },
+
+      resume() {
+        if (this.audio && this.audio.paused && this.currentTrackKey) {
+          this.audio.playbackRate = this.playbackRate;
+          this.audio.play().catch(() => {});
+        }
+      },
+
+      pause() {
+        if (this.audio) this.audio.pause();
+      },
+
+      stop() {
+        if (this.audio) {
+          try {
+            this.audio.pause();
+            this.audio.currentTime = 0;
+          } catch (e) {}
+        }
+        this.currentTrackKey = null;
+      }
+    };
+
+    function tryStartBGM() {
+      Sound.init();
+      if (!BGM.audio || BGM.audio.paused) {
+        if (gameState === 'TITLE') {
+          BGM.playTrack('title');
+        } else if (gameState === 'STAFF_ROLL') {
+          BGM.playTrack('credits');
+        } else if (currentStageIndex >= 1 && currentStageIndex <= 5 && (gameState === 'PLAYING' || gameState === 'STORY' || gameState === 'STAGE_CLEAR_WAIT')) {
+          BGM.playTrack(`stage${currentStageIndex}`);
+        }
+      }
+    }
+
+    // ==========================================
+    // 3. 【全5ステージ内蔵フォールバックデータ（安全設計）】
+    // ==========================================
+    const fallbackStages = {
+      1: {
+        stageNumber: 1,
+        name: "STAGE 1: NEON RECTANGLE",
+        spawnEnemy: 0,
+        itemDropRate: 0.15,
+        isMating: false,
+        movingBlocksRow: null,
+        blockType: {
+          1: { maxHp: 1, baseColor: '#00ff88' },
+          4: { maxHp: 1, baseColor: '#00f0ff' }
+        },
+        blocks: [
+          [1, 1, 1, 1, 1, 1, 1, 1],
+          [4, 4, 4, 4, 4, 4, 4, 4],
+          [1, 1, 1, 1, 1, 1, 1, 1]
+        ]
+      },
+      2: {
+        stageNumber: 2,
+        name: "STAGE 2: NEON HEART",
+        spawnEnemy: 0,
+        itemDropRate: 0.15,
+        isMating: false,
+        movingBlocksRow: null,
+        blockType: {
+          1: { maxHp: 1, baseColor: '#ff007f' },
+          2: { maxHp: 2, baseColor: '#ffaa00' }
+        },
+        blocks: [
+          [0, 1, 2, 1, 0, 1, 2, 1, 0],
+          [1, 1, 1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1, 1, 1, 1, 1],
+          [0, 1, 1, 1, 1, 1, 1, 1, 0],
+          [0, 0, 1, 1, 1, 1, 1, 0, 0],
+          [0, 0, 0, 1, 1, 1, 0, 0, 0],
+          [0, 0, 0, 0, 2, 0, 0, 0, 0]
+        ]
+      },
+      3: {
+        stageNumber: 3,
+        name: "STAGE 3: CAPSULE CARNIVAL",
+        spawnEnemy: 1,
+        itemDropRate: 0.65, // カプセル超高確率ドロップ！
+        isMating: false,
+        movingBlocksRow: null,
+        blockType: {
+          1: { maxHp: 1, baseColor: '#00ff88' },
+          4: { maxHp: 1, baseColor: '#00f0ff' }
+        },
+        blocks: [
+          [1, 1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [4, 4, 4, 4, 4, 4, 4, 4],
+          [1, 1, 1, 1, 1, 1, 1, 1]
+        ]
+      },
+      4: {
+        stageNumber: 4,
+        name: "STAGE 4: CYBER V-STRIKE",
+        spawnEnemy: 2,
+        itemDropRate: 0.15,
+        isMating: true,
+        movingBlocksRow: null,
+        blockType: {
+          1: { maxHp: 1, baseColor: '#ff007f' },
+          4: { maxHp: 1, baseColor: '#00f0ff' },
+          2: { maxHp: 2, baseColor: '#ffaa00' }
+        },
+        blocks: [
+          [1, 4, 0, 0, 0, 0, 4, 1],
+          [0, 1, 4, 0, 0, 4, 1, 0],
+          [0, 0, 1, 0, 0, 1, 0, 0],
+          [0, 0, 0, 2, 2, 0, 0, 0]
+        ]
+      },
+      5: {
+        stageNumber: 5,
+        name: "STAGE 5: HELLFIRE",
+        spawnEnemy: 4,
+        itemDropRate: 0.20,
+        isMating: true,
+        movingBlocksRow: 1,
+        blockType: {
+          1: { maxHp: 1, baseColor: '#ff0055' },
+          2: { maxHp: 2, baseColor: '#ffaa00' },
+          3: { maxHp: 3, baseColor: '#ff00ff' },
+          4: { maxHp: 1, baseColor: '#00f0ff' }
+        },
+        blocks: [
+          [1, 2, 3, 4, 4, 3, 2, 1],
+          [4, 1, 2, 3, 3, 2, 1, 4],
+          [3, 4, 1, 2, 2, 1, 4, 3],
+          [2, 3, 4, 1, 1, 4, 3, 2]
+        ]
+      }
+    };
+
+    // ==========================================
+    // 4. 【サイバーパンク・ストーリー字幕データ（全ステージ網羅・10秒間表示）】
+    // ==========================================
+    const STORIES = {
+      1: {
+        sector: "SECTOR 01: PERIMETER GATE",
+        lines: [
+          "[LOG] 2026年、人類の全記憶を凍結した超AI防衛システム「Neon Pulse Barrier」の最終防衛ラインへ。",
+          "――このネオンの防衛壁をすべて叩き壊せば、すべてを取り戻せる。",
+          "[SYSTEM] 第1防衛セクター・アクセス成功。作戦を開始します。"
+        ]
+      },
+      2: {
+        sector: "SECTOR 02: HEART MATRIX",
+        lines: [
+          "[LOG] 第1層の突破を確認。防衛コードが再構成されていく。",
+          "――何だこの形は…？ AIが『ハート型』の強固な暗号セクターを形成している。",
+          "[SYSTEM] 耐久ブロックのシグナルを検知。慎重にコアを狙撃してください。"
+        ]
+      },
+      3: {
+        sector: "SECTOR 03: CAPSULE REPOSITORY",
+        lines: [
+          "[LOG] ハートセクターの解凍に成功。しかし、まだ先は長い。",
+          "――センサーに異常な数の物資（カプセル）の反応がある。これは一体…？",
+          "[SYSTEM] 警告：次エリアは高エネルギー領域。ライフの超増量を検知。"
+        ]
+      },
+      4: {
+        sector: "SECTOR 04: V-FORMATION DEFENSE",
+        lines: [
+          "[LOG] セクター3、ボーナスエリアの物資（ライフ）の完全回収に成功。",
+          "――よし、これだけのエネルギーがあれば、あの地獄の最終防衛ラインにも耐えられるはずだ。",
+          "[WARNING] 警告：敵AIのセキュリティが『Vの字型』に変形、動的防御を開始します。"
+        ]
+      },
+      5: {
+        sector: "FINAL SECTOR: HELLFIRE CORE",
+        lines: [
+          "[SYSTEM] 最終防衛セクターへのアクセスを承認。ロックを解除。",
+          "――ついに来たな、Neon Pulse Barrierの最深部『最終防衛ライン』。空気が重い。",
+          "[EMERGENCY] 最上級アラート！敵AIが4体のハッキングドローンを展開。総力戦を開始！"
+        ]
+      },
+      6: {
+        sector: "MISSION COMPLETE: HUMANITY RESTORED",
+        lines: [
+          "[SYSTEM] 最終防衛ラインの完全突破を確認。Neon Pulse Barrierのシャットダウンを開始。",
+          "――やった…やったんだ。長い戦いだった。これで、すべてが終わったんだ。",
+          "[LOG] 世界に光が戻る。――Thank you for Playing! （続いてクレジットへ）"
+        ]
+      }
+    };
+
+    // ==========================================
+    // 5. 定数とゲーム状態
+    // ==========================================
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const titleOverlay = document.getElementById('titleOverlay');
+
+    const CANVAS_WIDTH = 1600;
+    const CANVAS_HEIGHT = 900;
+    const TOTAL_STAGES = 5;
+
+    // ゲーム状態ステートマシン
+    // 'TITLE' -> 'STORY' -> 'PLAYING' -> 'STAGE_CLEAR_WAIT' -> 'CLEAR_FIREWORKS' -> 'STAFF_ROLL' -> 'GAMEOVER'
+    let gameState = 'TITLE';
+
+    // 難易度設定
+    let currentDifficulty = 'NORMAL';
+    let difficultySpeedMultiplier = 1.0;
+    let INITIAL_LIVES = 3;
+
+    let currentStageIndex = 1;
+    let lives = INITIAL_LIVES;
+    let isPaused = false;
+    let hasTriggeredSpeedWarning = false;
+
+    // 緊急ボム（電磁バースト）管理：初期残弾1、最大ストック3
+    let bombs = 1;
+    const MAX_BOMBS = 3;
+    let shockwaves = [];
+
+    // 1〜4面クリア待機演出用タイマー（クリックされるまで無期限待機）
+    let stageClearWaitTimer = 0;
+
+    // ストーリー演出管理（10秒間 = 600フレーム）
+    let storyStageNum = 1;
+    let storyTimer = 0;
+    const STORY_DURATION = 600; // 10秒間 (60fps * 10)
+    let storyRevealedChars = 0;
+
+    // クリア花火（5秒間）＆スタッフロール管理（10秒間）
+    let clearTimer = 0;
+    const FIREWORKS_DURATION = 300; // 5秒間 (60fps * 5)
+    let clearRevealedChars = 0;
+    let staffRollTimer = 0;
+    const STAFF_ROLL_DURATION = 600; // 10秒間
+    let isStaffRollFinished = false;
+
+    // ステージデータ構造
+    const stageData = {
+      stageNumber: 1,
+      name: "STAGE 1",
+      paddle: {
+        width: 126, // 190の3分の2（2/3）：鋭い弾幕回避を可能にする適正サイズ
+        height: 22,
+        speed: 18,
+        color: '#00ff88'
+      },
+      ball: {
+        radius: 14,
+        speed: 12,
+        speedUpRate: 1.01
+      },
+      features: {
+        enemyCount: 0,
+        enemyShooting: false,
+        enemyRingBarrage: false,
+        glitchEnabled: false,
+        movingBlocksRow: null,
+        matryoshkaSplit: false
+      },
+      rows: 3,
+      cols: 8,
+      blockWidth: 150,
+      blockHeight: 36,
+      gapX: 20,
+      gapY: 16,
+      offsetTop: 110,
+      layout: [],
+      blockTypes: {}
+    };
+
+    // パドル設定
+    const paddle = {
+      width: stageData.paddle.width,
+      height: stageData.paddle.height,
+      x: (CANVAS_WIDTH - stageData.paddle.width) / 2,
+      y: CANVAS_HEIGHT - 60,
+      speed: stageData.paddle.speed,
+      color: stageData.paddle.color
+    };
+
+    // ボール設定
+    let INITIAL_BALL_SPEED = stageData.ball.speed;
+    let currentBallSpeed = INITIAL_BALL_SPEED;
+    let slowdownTimer = 0;
+
+    const ball = {
+      radius: stageData.ball.radius,
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      color: '#ffffff'
+    };
+
+    // 操作入力フラグ
+    const keys = { left: false, right: false };
+    let isBtnLeftPressed = false;
+    let isBtnRightPressed = false;
+
+    // グリッチ演出タイマー
+    let glitchTimer = 0;
+
+    // 波状時間差アタック管理
+    let waveAttackTimer = 0;
+    let currentAttackerIndex = 0;
+
+    // ボムUI（HTMLボタンの残弾数表示）更新
+    function updateBombUI() {
+      const stockText = `×${bombs}`;
+      document.querySelectorAll('.btn-bomb-stock').forEach(el => {
+        el.textContent = stockText;
+      });
+      document.querySelectorAll('.btn-bomb').forEach(btn => {
+        if (bombs <= 0) {
+          btn.classList.add('empty');
+        } else {
+          btn.classList.remove('empty');
+        }
+      });
+    }
+
+    // 緊急ボム（電磁バースト）発動処理
+    function triggerBomb() {
+      if (gameState !== 'PLAYING' || isPaused) return;
+
+      if (bombs <= 0) {
+        Sound.playGlitchNoise();
+        addFloatingText('NO BOMBS LEFT!', paddle.x + paddle.width / 2, paddle.y - 40, '#ff0055');
+        return;
+      }
+
+      bombs--;
+      updateBombUI();
+      Sound.playBombBurst();
+
+      const cx = paddle.x + paddle.width / 2;
+      const cy = paddle.y + paddle.height / 2;
+      const maxRadius = paddle.width * 3; // パドル幅の3倍
+
+      // 衝撃波エフェクト（二重ネオンリング＋内部プラズマ）
+      shockwaves.push({
+        x: cx,
+        y: cy,
+        radius: 12,
+        maxRadius: maxRadius,
+        alpha: 1.0,
+        lineWidth: 22,
+        color: '#ff0055'
+      });
+
+      glitchTimer = 10;
+      addFloatingText('EM BURST!!', cx, paddle.y - 50, '#ff0055');
+
+      // 1. 【範囲内の全敵弾を完全消滅】
+      for (let i = enemyBullets.length - 1; i >= 0; i--) {
+        const eb = enemyBullets[i];
+        const dist = Math.hypot(eb.x - cx, eb.y - cy);
+        if (dist <= maxRadius) {
+          createSparks(eb.x, eb.y);
+          enemyBullets.splice(i, 1);
+        }
+      }
+
+      // 2. 【範囲内の敵エイリアンを巻き込んで撃墜（大爆発パーティクル）】
+      for (let i = 0; i < enemies.length; i++) {
+        const en = enemies[i];
+        if (en.state === 'respawning') continue;
+        const dist = Math.hypot(en.x - cx, en.y - cy);
+        if (dist <= maxRadius + en.radius) {
+          createBigExplosion(en.x, en.y, en.color);
+          addScore(500, en.x, en.y);
+          en.state = 'respawning';
+          en.respawnTimer = 360;
+          en.hasFiredRing = false;
+        }
+      }
+
+      // 3. 【パドル近傍のお邪魔ブロックがあれば巻き込んで破壊】
+      for (let i = 0; i < blocks.length; i++) {
+        const b = blocks[i];
+        if (!b.alive) continue;
+        const bx = b.x + b.width / 2;
+        const by = b.y + b.height / 2;
+        const dist = Math.hypot(bx - cx, by - cy);
+        if (dist <= maxRadius + 20) {
+          b.alive = false;
+          b.hp = 0;
+          Sound.playBlockBreak();
+          createParticles(bx, by, b.baseColor);
+          addScore(100, bx, by);
+          trySpawnItem(bx, by);
+        }
+      }
+
+      // 【最重要】：プレイヤーの「ボール」は絶対に消さずに透過・継続稼働
+    }
+
+    // ==========================================
+    // 6. 敵キャラクター ＆ 弾幕システム
+    // ==========================================
+    let enemies = [];
+    let enemyBullets = [];
+
+    function initEnemies(features = stageData.features) {
+      enemies = [];
+      enemyBullets = [];
+      waveAttackTimer = 0;
+      currentAttackerIndex = 0;
+
+      const configs = [
+        { id: 1, baseX: 280,  baseY: 360, color: '#b026ff' }, // 紫
+        { id: 2, baseX: 620,  baseY: 385, color: '#ff0055' }, // 紅
+        { id: 3, baseX: 980,  baseY: 385, color: '#00f0ff' }, // 青
+        { id: 4, baseX: 1320, baseY: 360, color: '#ffe600' }  // 黄
+      ];
+
+      const count = Math.min(features.enemyCount || 0, configs.length);
+      for (let i = 0; i < count; i++) {
+        const conf = configs[i];
+        enemies.push({
+          id: conf.id,
+          baseX: conf.baseX,
+          baseY: conf.baseY,
+          x: conf.baseX,
+          y: conf.baseY,
+          radius: 22,
+          color: conf.color,
+          state: 'idle',
+          shootTimer: 140 + Math.random() * 160,
+          hasFiredRing: false,
+          angle: 0,
+          swoopProgress: 0,
+          targetX: 0,
+          vx: 0,
+          vy: 0,
+          respawnTimer: 0
+        });
+      }
+    }
+
+    // ==========================================
+    // 7. ブロック動的生成
+    // ==========================================
+    let blocks = [];
+
+    function initBlocks(stage = stageData) {
+      blocks = [];
+      const totalWidth = (stage.cols * stage.blockWidth) + ((stage.cols - 1) * stage.gapX);
+      const offsetLeft = (CANVAS_WIDTH - totalWidth) / 2;
+
+      for (let r = 0; r < stage.rows; r++) {
+        for (let c = 0; c < stage.cols; c++) {
+          const typeId = stage.layout[r][c];
+          if (typeId === 0) continue;
+
+          const conf = stage.blockTypes[typeId] || { maxHp: 1, baseColor: '#00ff88' };
+          const baseX = offsetLeft + c * (stage.blockWidth + stage.gapX);
+          const y = stage.offsetTop + r * (stage.blockHeight + stage.gapY);
+          const isMoving = (stage.features.movingBlocksRow !== null && r === stage.features.movingBlocksRow);
+
+          blocks.push({
+            baseX: baseX,
+            x: baseX,
+            y: y,
+            width: stage.blockWidth,
+            height: stage.blockHeight,
+            maxHp: conf.maxHp,
+            hp: conf.maxHp,
+            baseColor: conf.baseColor,
+            isMoving: isMoving,
+            splitOnBreak: (conf.maxHp >= 2 && stage.features.matryoshkaSplit),
+            isMini: false,
+            alive: true
+          });
+        }
+      }
+    }
+
+    // ==========================================
+    // 8. 【外部パッチ読み込み ＆ ステージ進行】
+    // ==========================================
+    const mapCache = {};
+
+    // 起動時に全ステージマップを先行ロードしてメモリに保持（非同期遅延によるスキップを根絶）
+    async function preloadAllMaps() {
+      for (let s = 1; s <= 4; s++) {
+        try {
+          const res = await fetch(`map${s}.json`);
+          if (res.ok) {
+            mapCache[s] = await res.json();
+          }
+        } catch (e) {
+          // file:// 環境などfetchが制限される環境でもfallbackStagesで完全動作
+        }
+      }
+    }
+    preloadAllMaps();
+
+    function startStage(stageNum) {
+      currentStageIndex = stageNum;
+      currentCombo = 0; // ステージ開始時のコンボ仕切り直し
+
+      const storyOverlay = document.getElementById('storyOverlay');
+      if (storyOverlay) storyOverlay.classList.add('hidden');
+
+      // キャッシュまたはfallbackStagesから即座に同期初期化（ブロックを100%確実に即座に生成）
+      const data = mapCache[stageNum] || fallbackStages[stageNum] || fallbackStages[5];
+      applyStageData(data, stageNum);
+
+      gameState = 'PLAYING';
+
+      // まだキャッシュにない場合は非同期でロード（初回や動的更新対応）
+      if (!mapCache[stageNum] && stageNum <= 4) {
+        fetch(`map${stageNum}.json`)
+          .then(res => res.ok ? res.json() : null)
+          .then(patch => {
+            if (patch) {
+              mapCache[stageNum] = patch;
+              if (gameState === 'PLAYING' && currentStageIndex === stageNum) {
+                const allIntact = blocks.length > 0 && blocks.every(b => b.alive && b.hp === b.maxHp);
+                if (allIntact) {
+                  applyStageData(patch, stageNum);
+                }
+              }
+            }
+          })
+          .catch(() => {});
+      }
+    }
+
+    function loadStage(stageNum) {
+      startStage(stageNum);
+    }
+
+    function applyStageData(patch, stageNum) {
+      stageData.stageNumber = stageNum;
+      stageData.name = patch.name || `STAGE ${stageNum}`;
+      stageData.layout = patch.blocks || patch.layout || fallbackStages[stageNum].blocks;
+      stageData.rows = stageData.layout.length;
+      stageData.cols = stageData.layout[0].length;
+      stageData.blockTypes = patch.blockType || patch.blockTypes || fallbackStages[stageNum].blockType;
+      stageData.itemDropRate = (patch.itemDropRate !== undefined) ? patch.itemDropRate : 0.20;
+
+      const enemyCount = (patch.spawnEnemy !== undefined) ? patch.spawnEnemy : (patch.features?.enemyCount || 0);
+      const isMating = (patch.isMating !== undefined) ? patch.isMating : (patch.isMatryoshka !== undefined ? patch.isMatryoshka : (patch.features?.matryoshkaSplit || false));
+      const movingRow = (patch.movingBlocksRow !== undefined) ? patch.movingBlocksRow : (patch.features?.movingBlocksRow ?? null);
+
+      stageData.features = {
+        enemyCount: enemyCount,
+        enemyShooting: enemyCount > 0,
+        enemyRingBarrage: enemyCount > 0,
+        glitchEnabled: stageNum >= 2,
+        movingBlocksRow: movingRow,
+        matryoshkaSplit: isMating
+      };
+
+      // 難易度による初速を適用
+      INITIAL_BALL_SPEED = 12 * difficultySpeedMultiplier;
+      currentBallSpeed = INITIAL_BALL_SPEED;
+
+      slowdownTimer = 0;
+      glitchTimer = 0;
+      hasTriggeredSpeedWarning = false;
+
+      particles = [];
+      items = [];
+      floatingTexts = [];
+      fireworkRockets = [];
+      fireworkSparks = [];
+      enemyBullets = [];
+
+      // ステージBGMの再生（.m4a自動認識型）
+      BGM.playTrack(`stage${stageNum}`);
+
+      initBlocks(stageData);
+      initEnemies(stageData.features);
+      paddle.width = stageData.paddle.width;
+      paddle.x = (CANVAS_WIDTH - paddle.width) / 2;
+      resetBall();
+    }
+
+    // ==========================================
+    // 9. パーティクル・アイテム・花火大会システム
+    // ==========================================
+    let particles = [];
+    let items = [];
+    let floatingTexts = [];
+
+    let fireworkRockets = [];
+    let fireworkSparks = [];
+
+    function triggerGlitch() {
+      if (!stageData.features.glitchEnabled || gameState === 'CLEAR_FIREWORKS' || gameState === 'STAFF_ROLL' || gameState === 'STAGE_CLEAR_WAIT') return;
+      glitchTimer = 8;
+      Sound.playGlitchNoise();
+    }
+
+    function createParticles(x, y, color) {
+      const count = 14;
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 9 + 3;
+        particles.push({
+          x: x,
+          y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          radius: Math.random() * 3 + 2,
+          color: color,
+          alpha: 1.0,
+          decay: Math.random() * 0.025 + 0.02
+        });
+      }
+    }
+
+    function createBigExplosion(x, y, color) {
+      const count = 32;
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 14 + 4;
+        particles.push({
+          x: x,
+          y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          radius: Math.random() * 4 + 2.5,
+          color: (Math.random() < 0.3) ? '#ffffff' : color,
+          alpha: 1.0,
+          decay: Math.random() * 0.02 + 0.015
+        });
+      }
+    }
+
+    function createSparks(x, y) {
+      const count = 8;
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 10 + 4;
+        particles.push({
+          x: x,
+          y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          radius: Math.random() * 2.5 + 1.5,
+          color: (Math.random() < 0.5) ? '#ffffff' : '#ffee55',
+          alpha: 1.0,
+          decay: Math.random() * 0.05 + 0.04
+        });
+      }
+    }
+
+    // 花火ロケット打ち上げ（「ヒュルルル…」と上昇）
+    function launchRocket(targetX, targetY, color, type = 'bloom') {
+      Sound.playFireworkAscent();
+      fireworkRockets.push({
+        x: targetX,
+        y: CANVAS_HEIGHT + 20,
+        targetY: targetY,
+        vy: -15.5,
+        color: color,
+        type: type
+      });
+    }
+
+    // 花火の炸裂（大輪「ポン！」または連続「パンパンパン！」）
+    function explodeRocket(rocket) {
+      if (rocket.type === 'bloom') {
+        Sound.playFireworkBloom();
+        const sparkCount = 54;
+        for (let i = 0; i < sparkCount; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 11 + 2.5;
+          fireworkSparks.push({
+            x: rocket.x,
+            y: rocket.y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            radius: Math.random() * 3.5 + 2,
+            color: (Math.random() < 0.25) ? '#ffffff' : rocket.color,
+            alpha: 1.0,
+            decay: Math.random() * 0.016 + 0.011
+          });
+        }
+      } else if (rocket.type === 'barrage') {
+        Sound.playFireworkBarrage();
+        const colors = ['#00f0ff', '#ff007f', '#ffe600', '#00ff88', '#b026ff'];
+        const sparkCount = 88;
+        for (let i = 0; i < sparkCount; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 13 + 3;
+          const col = colors[Math.floor(Math.random() * colors.length)];
+          fireworkSparks.push({
+            x: rocket.x + (Math.random() * 40 - 20),
+            y: rocket.y + (Math.random() * 40 - 20),
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            radius: Math.random() * 4 + 2,
+            color: (Math.random() < 0.2) ? '#ffffff' : col,
+            alpha: 1.0,
+            decay: Math.random() * 0.015 + 0.010
+          });
+        }
+      }
+    }
+
+    function trySpawnItem(x, y) {
+      // EASYモードでは全ステージでドロップ率65%（50%以上の超高確率・アイテム乱舞お祭り状態）
+      const dropRate = (currentDifficulty === 'EASY') ? 0.65 : stageData.itemDropRate;
+      if (Math.random() > dropRate) return;
+
+      const rand = Math.random();
+      let type = 'slow';
+      let color = '#00f0ff';
+      let text = 'SLOW';
+
+      // EASYモードではボムやライフも惜しみなくドロップ（3面も高確率維持）
+      const bombChance = (currentDifficulty === 'EASY') ? 0.30 : ((currentStageIndex === 3) ? 0.28 : 0.08);
+
+      if (rand < bombChance) {
+        type = 'bomb';
+        color = '#ff0055';
+        text = '+BOMB';
+      } else if (rand < bombChance + 0.45) {
+        type = 'slow';
+        color = '#00f0ff';
+        text = 'SLOW';
+      } else {
+        type = '1up';
+        color = '#ffe600';
+        text = '+1UP';
+      }
+
+      items.push({
+        x: x,
+        y: y,
+        vy: 2.8,
+        width: 52,
+        height: 24,
+        type: type,
+        color: color,
+        text: text,
+        age: 0
+      });
+
+      Sound.playItemSpawn();
+    }
+
+    function addFloatingText(text, x, y, color, fontSize = 24) {
+      floatingTexts.push({
+        text: text,
+        x: x,
+        y: y,
+        color: color,
+        fontSize: fontSize,
+        alpha: 1.0,
+        vy: -1.5
+      });
+    }
+
+    // ==========================================
+    // 10. ボール初期化＆ゲーム進行フロー
+    // ==========================================
+    function resetBall() {
+      ball.x = paddle.x + paddle.width / 2;
+      ball.y = paddle.y - ball.radius - 2;
+
+      const speed = (slowdownTimer > 0) ? currentBallSpeed * 0.6 : currentBallSpeed;
+      const initialAngle = (-Math.PI / 2) + (Math.random() * 0.7 - 0.35);
+      ball.vx = speed * Math.cos(initialAngle);
+      ball.vy = speed * Math.sin(initialAngle);
+    }
+
+    // 難易度選択によるゲーム開始
+    function startGameWithDifficulty(diff) {
+      currentDifficulty = diff;
+      if (diff === 'EASY') {
+        INITIAL_LIVES = 10;
+        difficultySpeedMultiplier = 0.5;
+      } else if (diff === 'NORMAL') {
+        INITIAL_LIVES = 3;
+        difficultySpeedMultiplier = 1.0;
+      } else if (diff === 'HARD') {
+        INITIAL_LIVES = 1;
+        difficultySpeedMultiplier = 1.3;
+      }
+
+      lives = INITIAL_LIVES;
+      bombs = 1; // 開始時はボム1個
+      score = 0;
+      currentCombo = 0;
+      maxCombo = 0;
+      comboAnimTimer = 0;
+      rainbowFlashTimer = 0;
+      resultTimer = 0;
+      highScore = loadHighScore();
+      shockwaves = [];
+      updateBombUI();
+      Sound.playBtnSelect();
+
+      // タイトルUIを隠す
+      titleOverlay.classList.add('hidden');
+      const pauseOverlay = document.getElementById('pauseOverlay');
+      if (pauseOverlay) pauseOverlay.classList.add('hidden');
+
+      // 1面スタート前ストーリーへ遷移（10秒間）
+      startStory(1);
+    }
+
+    // ストーリー画面の開始（10秒間）
+    function startStory(stageNum) {
+      gameState = 'STORY';
+      storyStageNum = stageNum;
+      storyTimer = 0;
+      storyRevealedChars = 0;
+      isPaused = false;
+      currentCombo = 0; // ステージクリア時・次面進行時のコンボリセット（仕切り直し）
+      const pauseOverlay = document.getElementById('pauseOverlay');
+      if (pauseOverlay) pauseOverlay.classList.add('hidden');
+
+      const storyOverlay = document.getElementById('storyOverlay');
+      if (storyOverlay) {
+        storyOverlay.classList.remove('hidden');
+        storyOverlay.classList.remove('fireworks-mode');
+        const story = STORIES[stageNum] || STORIES[1];
+        const badge = document.getElementById('storyBadge');
+        if (badge) badge.textContent = `// MISSION BRIEFING // STAGE ${stageNum}`;
+        const header = document.getElementById('storySectorHeader');
+        if (header) header.textContent = story.sector;
+        const skip = document.getElementById('storySkipGuide');
+        if (skip) skip.textContent = 'PRESS [SPACE] OR CLICK SCREEN TO SKIP BRIEFING ▶';
+        updateStoryOverlayText(story, 0);
+      }
+
+      // ストーリー表示中（10秒間）の間にバックグラウンドでmapX.jsonを確実に先行取得
+      if (!mapCache[stageNum] && stageNum <= 4) {
+        fetch(`map${stageNum}.json`)
+          .then(res => res.ok ? res.json() : null)
+          .then(patch => {
+            if (patch) mapCache[stageNum] = patch;
+          })
+          .catch(() => {});
+      }
+
+      // 各面用のBGMを即座に再生開始
+      BGM.playTrack(`stage${stageNum}`);
+    }
+
+    // ストーリー字幕オーバーレイのテキスト更新（自動折り返し対応）
+    function updateStoryOverlayText(story, revealedChars) {
+      const storyBody = document.getElementById('storyBody');
+      if (!storyBody || !story || !story.lines) return;
+
+      let charAcc = 0;
+      let html = '';
+      for (let i = 0; i < story.lines.length; i++) {
+        const line = story.lines[i];
+        const lineLen = line.length;
+        let displayLine = '';
+
+        if (revealedChars >= charAcc + lineLen) {
+          displayLine = line;
+        } else if (revealedChars > charAcc) {
+          displayLine = line.substring(0, revealedChars - charAcc);
+        }
+        charAcc += lineLen;
+
+        if (displayLine.length > 0) {
+          let cls = 'dialogue';
+          if (line.startsWith('[LOG]')) cls = 'log';
+          else if (line.startsWith('[SYSTEM]')) cls = 'system';
+          else if (line.startsWith('[WARNING]') || line.startsWith('[EMERGENCY]')) cls = 'warning';
+
+          const isCurrentTypingLine = (revealedChars <= charAcc);
+          const cursor = (isCurrentTypingLine && Math.floor(storyTimer / 18) % 2 === 0)
+            ? '<span style="color:#00ff88; text-shadow:0 0 10px #00ff88;"> █</span>'
+            : '';
+
+          html += `<div class="story-line ${cls}">${escapeHtml(displayLine)}${cursor}</div>`;
+        }
+      }
+      storyBody.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // 戦績評価（リザルト画面）の開始（5秒間・ドラムロール音）
+    function startResultScreen() {
+      gameState = 'RESULT';
+      resultTimer = 0;
+      const storyOverlay = document.getElementById('storyOverlay');
+      if (storyOverlay) {
+        storyOverlay.classList.add('hidden');
+        storyOverlay.classList.remove('fireworks-mode');
+      }
+      Sound.playDrumRoll();
+    }
+
+    // 映画風スタッフロールの開始（7曲目 bgm_credits のシームレス自動再生）
+    function startStaffRoll() {
+      gameState = 'STAFF_ROLL';
+      staffRollTimer = 0;
+      isStaffRollFinished = false;
+      const storyOverlay = document.getElementById('storyOverlay');
+      if (storyOverlay) storyOverlay.classList.add('hidden');
+      BGM.playTrack('credits');
+    }
+
+    // タイトル画面へ戻る
+    function returnToTitle() {
+      gameState = 'TITLE';
+      titleOverlay.classList.remove('hidden');
+      const pauseOverlay = document.getElementById('pauseOverlay');
+      if (pauseOverlay) pauseOverlay.classList.add('hidden');
+      const storyOverlay = document.getElementById('storyOverlay');
+      if (storyOverlay) storyOverlay.classList.add('hidden');
+      isPaused = false;
+      btnPauseText.textContent = 'PAUSE';
+      btnPauseIcon.textContent = '⏸';
+
+      // 進行状態・物理オブジェクトの完全破棄とリセット
+      enemies = [];
+      enemyBullets = [];
+      blocks = [];
+      items = [];
+      particles = [];
+      shockwaves = [];
+      floatingTexts = [];
+      fireworkRockets = [];
+      fireworkSparks = [];
+      slowdownTimer = 0;
+      glitchTimer = 0;
+      bombs = 1;
+      currentCombo = 0;
+      comboAnimTimer = 0;
+      rainbowFlashTimer = 0;
+      resultTimer = 0;
+      updateBombUI();
+      updateTitleHiScoreUI();
+
+      BGM.playTrack('title');
+    }
+
+    // ゲームオーバー後のリトライ（ステージ1へ）- 互換保持
+    function restartGame() {
+      returnToTitle();
+    }
+
+    function clampPaddle() {
+      if (paddle.x < 0) {
+        paddle.x = 0;
+      } else if (paddle.x + paddle.width > CANVAS_WIDTH) {
+        paddle.x = CANVAS_WIDTH - paddle.width;
+      }
+    }
+
+    // ==========================================
+    // 11. ポーズ ＆ フルスクリーン機能
+    // ==========================================
+    const btnFullscreen = document.getElementById('btnFullscreen');
+    const fullscreenIcon = document.getElementById('fullscreenIcon');
+    const fullscreenText = document.getElementById('fullscreenText');
+
+    const btnPause = document.getElementById('btnPause');
+    const btnPauseIcon = document.getElementById('pauseIcon');
+    const btnPauseText = document.getElementById('pauseText');
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else if (document.documentElement.webkitRequestFullscreen) {
+          document.documentElement.webkitRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+    }
+
+    function togglePause() {
+      if (gameState !== 'PLAYING') return;
+      isPaused = !isPaused;
+      btnPauseText.textContent = isPaused ? 'RESUME' : 'PAUSE';
+      btnPauseIcon.textContent = isPaused ? '▶' : '⏸';
+
+      const pauseOverlay = document.getElementById('pauseOverlay');
+      if (pauseOverlay) {
+        if (isPaused) {
+          pauseOverlay.classList.remove('hidden');
+        } else {
+          pauseOverlay.classList.add('hidden');
+        }
+      }
+    }
+
+    // ポーズオーバーレイ内ボタンのイベント
+    const btnPauseResume = document.getElementById('btnPauseResume');
+    if (btnPauseResume) {
+      btnPauseResume.addEventListener('click', (e) => {
+        e.stopPropagation();
+        tryStartBGM();
+        Sound.playBtnSelect();
+        togglePause();
+      });
+    }
+
+    const btnPauseQuit = document.getElementById('btnPauseQuit');
+    if (btnPauseQuit) {
+      btnPauseQuit.addEventListener('click', (e) => {
+        e.stopPropagation();
+        tryStartBGM();
+        Sound.playBtnSelect();
+        returnToTitle();
+      });
+    }
+
+    const pauseOverlayEl = document.getElementById('pauseOverlay');
+    if (pauseOverlayEl) {
+      pauseOverlayEl.addEventListener('pointerdown', (e) => {
+        if (!e.target.closest('#btnPauseQuit')) {
+          e.stopPropagation();
+          tryStartBGM();
+          togglePause();
+        }
+      });
+    }
+
+    btnFullscreen.addEventListener('click', (e) => {
+      e.stopPropagation();
+      tryStartBGM();
+      toggleFullscreen();
+    });
+
+    btnPause.addEventListener('click', (e) => {
+      e.stopPropagation();
+      tryStartBGM();
+      togglePause();
+    });
+
+    // 音量コントローラー＆ミュートボタンのイベント登録
+    const btnMute = document.getElementById('btnMute');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumeControlPanel = document.querySelector('.cyber-volume-control');
+
+    if (volumeControlPanel) {
+      ['pointerdown', 'mousedown', 'touchstart', 'click'].forEach(evt => {
+        volumeControlPanel.addEventListener(evt, (e) => {
+          e.stopPropagation();
+        });
+      });
+    }
+
+    if (btnMute) {
+      btnMute.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleMute();
+        Sound.playKeyClick();
+      });
+    }
+
+    if (volumeSlider) {
+      volumeSlider.addEventListener('input', handleVolumeSliderInput);
+      volumeSlider.addEventListener('change', (e) => {
+        handleVolumeSliderInput(e);
+        volumeSlider.blur();
+      });
+      volumeSlider.addEventListener('pointerup', () => volumeSlider.blur());
+      volumeSlider.addEventListener('mouseup', () => volumeSlider.blur());
+      volumeSlider.addEventListener('touchend', () => volumeSlider.blur());
+    }
+
+    // 初期音量UI反映（50%設定）
+    updateVolumeUI();
+
+    function updateFullscreenButtonState() {
+      const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      if (isFull) {
+        fullscreenIcon.textContent = '✕';
+        fullscreenText.textContent = 'EXIT FULL';
+      } else {
+        fullscreenIcon.textContent = '⛶';
+        fullscreenText.textContent = 'FULLSCREEN';
+      }
+    }
+
+    document.addEventListener('fullscreenchange', updateFullscreenButtonState);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenButtonState);
+
+    // ==========================================
+    // 12. 操作イベント登録
+    // ==========================================
+    // 難易度ボタン登録
+    document.querySelectorAll('.cyber-diff-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        tryStartBGM();
+        const diff = btn.getAttribute('data-diff');
+        startGameWithDifficulty(diff);
+      });
+    });
+
+    function setupVirtualButton(buttonElement, setPressed) {
+      buttonElement.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        tryStartBGM();
+        buttonElement.setPointerCapture(e.pointerId);
+        buttonElement.classList.add('active');
+        setPressed(true);
+      });
+      buttonElement.addEventListener('pointerup', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        buttonElement.classList.remove('active');
+        setPressed(false);
+      });
+      buttonElement.addEventListener('pointercancel', (e) => {
+        buttonElement.classList.remove('active');
+        setPressed(false);
+      });
+      buttonElement.addEventListener('pointerleave', (e) => {
+        buttonElement.classList.remove('active');
+        setPressed(false);
+      });
+    }
+
+    setupVirtualButton(document.getElementById('btnLeft'), (val) => { isBtnLeftPressed = val; });
+    setupVirtualButton(document.getElementById('btnRight'), (val) => { isBtnRightPressed = val; });
+
+    // ボムボタンのタップ・クリック登録
+    function setupBombButton(buttonElement) {
+      if (!buttonElement) return;
+      buttonElement.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        tryStartBGM();
+        buttonElement.classList.add('active');
+        triggerBomb();
+      });
+      const resetBtn = () => buttonElement.classList.remove('active');
+      buttonElement.addEventListener('pointerup', resetBtn);
+      buttonElement.addEventListener('pointercancel', resetBtn);
+      buttonElement.addEventListener('pointerleave', resetBtn);
+    }
+
+    setupBombButton(document.getElementById('btnBombLeft'));
+    setupBombButton(document.getElementById('btnBombRight'));
+
+    window.addEventListener('keydown', (e) => {
+      tryStartBGM();
+
+      // Bキーで緊急ボム発動
+      if (e.key === 'b' || e.key === 'B') {
+        e.preventDefault();
+        triggerBomb();
+        return;
+      }
+
+      // ゲームオーバー中のキー入力でタイトルへ安全に戻る
+      if (gameState === 'GAMEOVER' && (e.key === ' ' || e.key === 'Enter')) {
+        e.preventDefault();
+        Sound.playBtnSelect();
+        returnToTitle();
+        return;
+      }
+
+      if (e.key === 'p' || e.key === 'P') {
+        e.preventDefault();
+        togglePause();
+        return;
+      }
+
+      // 1〜4面クリア待機中にスペース/Enterで次のストーリーへ進む
+      if (gameState === 'STAGE_CLEAR_WAIT' && (e.key === ' ' || e.key === 'Enter')) {
+        e.preventDefault();
+        Sound.playBtnSelect();
+        startStory(currentStageIndex + 1);
+        return;
+      }
+
+      // ストーリー画面中にスペースキーで即スキップ
+      if (gameState === 'STORY' && e.key === ' ') {
+        e.preventDefault();
+        startStage(storyStageNum);
+        return;
+      }
+
+      // クリア花火中にスペースキーで戦績評価（リザルト画面）へ即スキップ
+      if (gameState === 'CLEAR_FIREWORKS' && e.key === ' ') {
+        e.preventDefault();
+        startResultScreen();
+        return;
+      }
+
+      // 戦績評価（リザルト画面）中にスペースキーでスタッフロールへ即スキップ
+      if (gameState === 'RESULT' && e.key === ' ') {
+        e.preventDefault();
+        startStaffRoll();
+        return;
+      }
+
+      if (e.key === ' ' && gameState === 'PLAYING') {
+        e.preventDefault();
+        togglePause();
+        return;
+      }
+
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      tryStartBGM();
+      if (gameState !== 'PLAYING' || isPaused) return;
+      if (isBtnLeftPressed || isBtnRightPressed) return;
+
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0) return;
+      const scaleX = CANVAS_WIDTH / rect.width;
+      const mouseX = (e.clientX - rect.left) * scaleX;
+
+      paddle.x = mouseX - paddle.width / 2;
+      clampPaddle();
+    });
+
+    // 画面クリック（ステージクリア次進行／ストーリースキップ／ポーズ解除／タイトルへ戻る）
+    window.addEventListener('pointerdown', (e) => {
+      tryStartBGM();
+      if (e.target.closest('.cyber-panel-btn') || e.target.closest('.cyber-btn') || e.target.closest('.cyber-diff-btn') || e.target.closest('.pause-box')) {
+        return;
+      }
+
+      if (isPaused) {
+        togglePause();
+        return;
+      }
+
+      // ★ 1〜4面クリア待機中のクリックで次のストーリー画面へ進む
+      if (gameState === 'STAGE_CLEAR_WAIT') {
+        Sound.playBtnSelect();
+        startStory(currentStageIndex + 1);
+        return;
+      }
+
+      // ストーリー演出中にクリックで即座にプレイ開始
+      if (gameState === 'STORY') {
+        startStage(storyStageNum);
+        return;
+      }
+
+      // 5面クリア花火中にクリックで戦績評価（リザルト画面）へ即スキップ
+      if (gameState === 'CLEAR_FIREWORKS') {
+        startResultScreen();
+        return;
+      }
+
+      // 戦績評価（リザルト画面）中にクリックでスタッフロールへ即スキップ
+      if (gameState === 'RESULT') {
+        startStaffRoll();
+        return;
+      }
+
+      // スタッフロール終了後にクリックでタイトルへ戻る
+      if (gameState === 'STAFF_ROLL' && isStaffRollFinished) {
+        Sound.playBtnSelect();
+        returnToTitle();
+        return;
+      }
+
+      // ゲームオーバー時の画面クリックでタイトルへ安全に戻る（自動開始を完全廃止）
+      if (gameState === 'GAMEOVER') {
+        Sound.playBtnSelect();
+        returnToTitle();
+        return;
+      }
+    });
+
+    // ストーリーオーバーレイのクリックでスキップ
+    const storyOverlayEl = document.getElementById('storyOverlay');
+    if (storyOverlayEl) {
+      storyOverlayEl.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+        tryStartBGM();
+        if (gameState === 'STORY') {
+          startStage(storyStageNum);
+        } else if (gameState === 'CLEAR_FIREWORKS') {
+          startResultScreen();
+        }
+      });
+    }
+
+    // ==========================================
+    // 13. ゲーム物理演算（メインループ処理）
+    // ==========================================
+    let gameTime = 0;
+
+    function update() {
+      if (isPaused) return;
+
+      // ------------------------------------------
+      // 0. ステージクリア待機中（1〜4面）：完全フリーズしてクリック待ち
+      // ------------------------------------------
+      if (gameState === 'STAGE_CLEAR_WAIT') {
+        stageClearWaitTimer++;
+        return; // すべてのゲーム進行が完全停止
+      }
+
+      // ------------------------------------------
+      // 1. ストーリー字幕演出中の更新（10秒間 = 600フレーム）
+      // ------------------------------------------
+      if (gameState === 'STORY') {
+        storyTimer++;
+        const currentStory = STORIES[storyStageNum] || STORIES[1];
+        const fullTextLength = currentStory.lines.join('').length;
+
+        // タイピング効果（3フレームに1文字進行）
+        if (storyRevealedChars < fullTextLength && storyTimer % 3 === 0) {
+          storyRevealedChars++;
+          Sound.playKeyClick();
+          updateStoryOverlayText(currentStory, storyRevealedChars);
+        }
+
+        // プログレスバー更新
+        const progressFill = document.getElementById('storyProgressFill');
+        if (progressFill) {
+          const ratio = Math.min(1.0, storyTimer / STORY_DURATION);
+          progressFill.style.width = (ratio * 100) + '%';
+        }
+
+        // 10秒経過で自動的にステージ開始
+        if (storyTimer >= STORY_DURATION) {
+          startStage(storyStageNum);
+          return;
+        }
+        return;
+      }
+
+      // ------------------------------------------
+      // 2. グランドフィナーレ：花火連発＆クリアストーリー演出（10秒間）
+      // ------------------------------------------
+      if (gameState === 'CLEAR_FIREWORKS') {
+        clearTimer++;
+        glitchTimer = 0;
+
+        const clearStory = STORIES[6];
+        const fullTextLength = clearStory.lines.join('').length;
+        if (clearRevealedChars < fullTextLength && clearTimer % 3 === 0) {
+          clearRevealedChars++;
+          Sound.playKeyClick();
+          updateStoryOverlayText(clearStory, clearRevealedChars);
+        }
+
+        // プログレスバー更新
+        const progressFill = document.getElementById('storyProgressFill');
+        if (progressFill) {
+          const ratio = Math.min(1.0, clearTimer / FIREWORKS_DURATION);
+          progressFill.style.width = (ratio * 100) + '%';
+        }
+
+        // 5秒間にわたる多彩で情緒ある打ち上げ花火連発
+        if (clearTimer === 20) {
+          launchRocket(520, 240, '#00f0ff', 'bloom');
+        } else if (clearTimer === 60) {
+          launchRocket(1080, 210, '#ff007f', 'bloom');
+        } else if (clearTimer === 110) {
+          launchRocket(380, 270, '#ffe600', 'bloom');
+          launchRocket(1220, 270, '#00ff88', 'bloom');
+        } else if (clearTimer === 160) {
+          launchRocket(800, 190, '#00f0ff', 'barrage');
+        } else if (clearTimer === 210) {
+          launchRocket(620, 220, '#ff007f', 'bloom');
+          launchRocket(980, 220, '#ffe600', 'barrage');
+        } else if (clearTimer === 255) {
+          launchRocket(400, 230, '#00ff88', 'barrage');
+          launchRocket(1200, 230, '#ff007f', 'barrage');
+        }
+
+        // ロケット更新
+        for (let i = fireworkRockets.length - 1; i >= 0; i--) {
+          const r = fireworkRockets[i];
+          r.y += r.vy;
+
+          if (Math.random() < 0.6) {
+            fireworkSparks.push({
+              x: r.x + (Math.random() * 4 - 2),
+              y: r.y + 6,
+              vx: (Math.random() - 0.5) * 1.5,
+              vy: Math.random() * 1.5 + 0.8,
+              radius: Math.random() * 2 + 1,
+              color: '#ffee88',
+              alpha: 0.85,
+              decay: 0.05
+            });
+          }
+
+          if (r.y <= r.targetY) {
+            explodeRocket(r);
+            fireworkRockets.splice(i, 1);
+          }
+        }
+
+        // 火花更新
+        for (let i = fireworkSparks.length - 1; i >= 0; i--) {
+          const s = fireworkSparks[i];
+          s.x += s.vx;
+          s.y += s.vy;
+          s.vx *= 0.97;
+          s.vy += 0.12;
+          s.alpha -= s.decay;
+          if (s.alpha <= 0) fireworkSparks.splice(i, 1);
+        }
+
+        // 5秒経過後、画面を暗転させて戦績評価（リザルト画面）へ移行
+        if (clearTimer >= FIREWORKS_DURATION) {
+          startResultScreen();
+        }
+        return;
+      }
+
+      // ------------------------------------------
+      // 2.5 戦績評価（リザルト画面）中の更新（5秒間）
+      // ------------------------------------------
+      if (gameState === 'RESULT') {
+        resultTimer++;
+        if (resultTimer >= RESULT_DURATION) {
+          startStaffRoll();
+        }
+        return;
+      }
+
+      // ------------------------------------------
+      // 3. 映画風スタッフロール中の更新（10秒間）
+      // ------------------------------------------
+      if (gameState === 'STAFF_ROLL') {
+        staffRollTimer++;
+        if (staffRollTimer >= STAFF_ROLL_DURATION) {
+          isStaffRollFinished = true;
+        }
+        return;
+      }
+
+      // ------------------------------------------
+      // 4. タイトル画面またはゲームオーバー中の待機
+      // ------------------------------------------
+      if (gameState === 'TITLE' || gameState === 'GAMEOVER') {
+        return;
+      }
+
+      // ------------------------------------------
+      // 5. 通常プレイ中の物理演算
+      // ------------------------------------------
+      gameTime++;
+
+      if (glitchTimer > 0) glitchTimer--;
+      if (comboAnimTimer > 0) comboAnimTimer--;
+      if (rainbowFlashTimer > 0) rainbowFlashTimer--;
+
+      // スピードダウンタイマー
+      if (slowdownTimer > 0) slowdownTimer--;
+      const effectiveSpeed = (slowdownTimer > 0) ? currentBallSpeed * 0.6 : currentBallSpeed;
+
+      const ballCurMag = Math.hypot(ball.vx, ball.vy);
+      if (ballCurMag > 0) {
+        ball.vx = (ball.vx / ballCurMag) * effectiveSpeed;
+        ball.vy = (ball.vy / ballCurMag) * effectiveSpeed;
+      }
+
+      // パドル移動
+      if (keys.left || isBtnLeftPressed) paddle.x -= paddle.speed;
+      if (keys.right || isBtnRightPressed) paddle.x += paddle.speed;
+      clampPaddle();
+
+      // ボール移動
+      ball.x += ball.vx;
+      ball.y += ball.vy;
+
+      // ショックウェーブ（ネオン・ボム電磁バースト）の更新と動的敵弾消去
+      for (let i = shockwaves.length - 1; i >= 0; i--) {
+        const sw = shockwaves[i];
+        sw.radius += (sw.maxRadius - sw.radius) * 0.28 + 6;
+        sw.lineWidth = Math.max(1, sw.lineWidth * 0.92);
+        sw.alpha -= 0.04;
+
+        // 拡大中のリングに接触した敵弾も消滅
+        for (let bIdx = enemyBullets.length - 1; bIdx >= 0; bIdx--) {
+          const eb = enemyBullets[bIdx];
+          const dist = Math.hypot(eb.x - sw.x, eb.y - sw.y);
+          if (dist <= sw.radius) {
+            createSparks(eb.x, eb.y);
+            enemyBullets.splice(bIdx, 1);
+          }
+        }
+
+        if (sw.alpha <= 0 || sw.radius >= sw.maxRadius) {
+          shockwaves.splice(i, 1);
+        }
+      }
+
+      // 動くブロック & 分裂ミニブロックのスライド
+      const slideOffset = Math.sin(gameTime * 0.028) * 85;
+      for (const b of blocks) {
+        if (!b.alive) continue;
+        if (b.isMini) {
+          b.x = b.baseX + Math.sin(gameTime * b.moveSpeed + b.movePhase) * b.moveAmp;
+        } else if (b.isMoving) {
+          b.x = b.baseX + slideOffset;
+        }
+      }
+
+      // パーティクル更新
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.98;
+        p.vy += 0.18;
+        p.alpha -= p.decay;
+        if (p.alpha <= 0) particles.splice(i, 1);
+      }
+
+      // フローティングテキスト更新
+      for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        const ft = floatingTexts[i];
+        ft.y += ft.vy;
+        ft.alpha -= 0.018;
+        if (ft.alpha <= 0) floatingTexts.splice(i, 1);
+      }
+
+      // アイテムカプセル更新
+      for (let i = items.length - 1; i >= 0; i--) {
+        const it = items[i];
+        it.age++;
+        it.y += it.vy;
+        it.x += Math.sin(it.age * 0.08) * 1.2;
+
+        if (it.age % 3 === 0) {
+          particles.push({
+            x: it.x + (Math.random() * 20 - 10),
+            y: it.y,
+            vx: 0,
+            vy: -0.5,
+            radius: 2,
+            color: it.color,
+            alpha: 0.7,
+            decay: 0.04
+          });
+        }
+
+        const isHitPaddle = (it.x + it.width / 2 >= paddle.x) &&
+                            (it.x - it.width / 2 <= paddle.x + paddle.width) &&
+                            (it.y + it.height / 2 >= paddle.y) &&
+                            (it.y - it.height / 2 <= paddle.y + paddle.height);
+
+        if (isHitPaddle) {
+          if (it.type === 'slow') {
+            slowdownTimer = 120;
+            Sound.playSlowdown();
+            addFloatingText('SLOW DOWN! (2s)', paddle.x + paddle.width / 2, paddle.y - 30, '#00f0ff');
+          } else if (it.type === '1up') {
+            lives++;
+            Sound.playOneUp();
+            addFloatingText('+1 LIFE!', paddle.x + paddle.width / 2, paddle.y - 30, '#ffe600');
+          } else if (it.type === 'bomb') {
+            if (bombs < MAX_BOMBS) {
+              bombs++;
+              updateBombUI();
+              Sound.playBombPickup();
+              addFloatingText(`+1 BOMB! (${bombs}/${MAX_BOMBS})`, paddle.x + paddle.width / 2, paddle.y - 30, '#ff0055');
+            } else {
+              Sound.playOneUp();
+              addFloatingText('BOMB FULL! (MAX 3)', paddle.x + paddle.width / 2, paddle.y - 30, '#ff0055');
+            }
+          }
+          items.splice(i, 1);
+          continue;
+        }
+
+        if (it.y - it.height > CANVAS_HEIGHT) {
+          items.splice(i, 1);
+        }
+      }
+
+      // --- 【波状時間差アタック管理（敵出現時のみ稼働）】 ---
+      if (enemies.length > 0) {
+        waveAttackTimer++;
+        if (waveAttackTimer >= 150) {
+          waveAttackTimer = 0;
+          for (let step = 0; step < enemies.length; step++) {
+            const idx = (currentAttackerIndex + step) % enemies.length;
+            const en = enemies[idx];
+            if (en.state === 'idle') {
+              en.state = 'swoop';
+              en.swoopProgress = 0;
+              en.startX = en.x;
+              en.startY = en.y;
+              en.targetX = paddle.x + paddle.width / 2;
+              en.hasFiredRing = false;
+              Sound.playAlienDive();
+              currentAttackerIndex = (idx + 1) % enemies.length;
+              break;
+            }
+          }
+        }
+      }
+
+      // --- エイリアン AI ＆ リング弾方式 ---
+      for (const en of enemies) {
+        if (en.state === 'respawning') {
+          en.respawnTimer--;
+          if (en.respawnTimer <= 0) {
+            en.state = 'idle';
+            en.x = en.baseX;
+            en.y = en.baseY;
+            en.hasFiredRing = false;
+          }
+          continue;
+        }
+
+        if (stageData.features.enemyShooting && en.state === 'idle') {
+          en.shootTimer--;
+          if (en.shootTimer <= 0) {
+            en.shootTimer = 180 + Math.random() * 160;
+            enemyBullets.push({
+              x: en.x,
+              y: en.y + en.radius,
+              vx: (Math.random() - 0.5) * 1.5,
+              vy: 5.2,
+              width: 8,
+              height: 18,
+              radius: 4,
+              color: en.color,
+              isRing: false
+            });
+            Sound.playEnemyShoot();
+          }
+        }
+
+        if (en.state === 'idle') {
+          en.x = en.baseX + Math.sin(gameTime * 0.026 + en.id * 1.5) * 90;
+          en.y = en.baseY + Math.cos(gameTime * 0.035 + en.id * 1.2) * 16;
+          en.angle = Math.PI;
+        } else if (en.state === 'swoop') {
+          en.swoopProgress += 0.04;
+          const swoopRadius = 75;
+          const rotAngle = en.swoopProgress * Math.PI * 2;
+
+          en.x = en.startX + Math.sin(rotAngle) * swoopRadius;
+          en.y = en.startY - (1 - Math.cos(rotAngle)) * swoopRadius + (en.swoopProgress * 42);
+          en.angle = rotAngle + Math.PI;
+
+          if (gameTime % 2 === 0) {
+            particles.push({
+              x: en.x,
+              y: en.y,
+              vx: 0,
+              vy: 0,
+              radius: 2.5,
+              color: en.color,
+              alpha: 0.8,
+              decay: 0.05
+            });
+          }
+
+          if (en.swoopProgress >= 1.0) {
+            en.state = 'dive';
+            const dx = en.targetX - en.x;
+            const dy = paddle.y - en.y;
+            const dist = Math.hypot(dx, dy) || 1;
+            const diveSpeed = 8.2;
+            en.vx = (dx / dist) * diveSpeed;
+            en.vy = (dy / dist) * diveSpeed;
+          }
+        } else if (en.state === 'dive') {
+          en.x += en.vx;
+          en.y += en.vy;
+          en.angle = Math.atan2(en.vy, en.vx) - Math.PI / 2;
+
+          // 急降下中に1回だけリング弾を放つ
+          if (stageData.features.enemyRingBarrage && !en.hasFiredRing && en.y >= 480) {
+            en.hasFiredRing = true;
+            const bulletCount = 10;
+            const bulletSpeed = 4.2;
+
+            for (let b = 0; b < bulletCount; b++) {
+              const bAngle = (b / bulletCount) * Math.PI * 2;
+              enemyBullets.push({
+                x: en.x,
+                y: en.y,
+                vx: Math.cos(bAngle) * bulletSpeed,
+                vy: Math.sin(bAngle) * bulletSpeed,
+                radius: 5,
+                color: en.color,
+                isRing: true
+              });
+            }
+            Sound.playRingShoot();
+          }
+
+          particles.push({
+            x: en.x,
+            y: en.y,
+            vx: -en.vx * 0.1,
+            vy: -en.vy * 0.1,
+            radius: 3,
+            color: en.color,
+            alpha: 0.9,
+            decay: 0.06
+          });
+
+          if (en.y > CANVAS_HEIGHT + 60) {
+            en.state = 'idle';
+            en.x = en.baseX;
+            en.y = en.baseY;
+            en.hasFiredRing = false;
+          }
+        }
+
+        // ボールによるエイリアン撃墜
+        const distToBall = Math.hypot(ball.x - en.x, ball.y - en.y);
+        if (distToBall < ball.radius + en.radius) {
+          ball.vy = -ball.vy;
+          Sound.playBigExplosion();
+          createBigExplosion(en.x, en.y, en.color);
+          triggerGlitch();
+          registerComboHit(en.x, en.y);
+          addScore(500, en.x, en.y);
+
+          en.state = 'respawning';
+          en.respawnTimer = 280;
+          en.hasFiredRing = false;
+          continue;
+        }
+
+        // パドルとエイリアン衝突
+        const isHitPaddle = (en.x + en.radius >= paddle.x) &&
+                            (en.x - en.radius <= paddle.x + paddle.width) &&
+                            (en.y + en.radius >= paddle.y) &&
+                            (en.y - en.radius <= paddle.y + paddle.height);
+
+        if (isHitPaddle) {
+          Sound.playCrash();
+          createSparks(en.x, en.y);
+          lives--;
+          triggerGlitch();
+          addFloatingText('CRASH! -1 LIFE', paddle.x + paddle.width / 2, paddle.y - 40, '#ff0055');
+
+          en.state = 'idle';
+          en.x = en.baseX;
+          en.y = en.baseY;
+          en.hasFiredRing = false;
+
+          if (lives <= 0) {
+            gameState = 'GAMEOVER';
+            Sound.playGameOver();
+            BGM.stop();
+          }
+        }
+      }
+
+      // --- 敵の弾丸判定 ---
+      for (let i = enemyBullets.length - 1; i >= 0; i--) {
+        const eb = enemyBullets[i];
+        eb.x += eb.vx;
+        eb.y += eb.vy;
+
+        const bRad = eb.radius || 4;
+        const isHitPaddle = (eb.x + bRad >= paddle.x) &&
+                            (eb.x - bRad <= paddle.x + paddle.width) &&
+                            (eb.y + bRad >= paddle.y) &&
+                            (eb.y - bRad <= paddle.y + paddle.height);
+
+        if (isHitPaddle) {
+          Sound.playCrash();
+          createSparks(eb.x, eb.y);
+          lives--;
+          triggerGlitch();
+          addFloatingText('HIT! -1 LIFE', paddle.x + paddle.width / 2, paddle.y - 40, '#ff0055');
+          enemyBullets.splice(i, 1);
+
+          if (lives <= 0) {
+            gameState = 'GAMEOVER';
+            Sound.playGameOver();
+            BGM.stop();
+          }
+          continue;
+        }
+
+        if (eb.y > CANVAS_HEIGHT + 40 || eb.y < -40 || eb.x < -40 || eb.x > CANVAS_WIDTH + 40) {
+          enemyBullets.splice(i, 1);
+        }
+      }
+
+      // --- 壁の衝突判定 ---
+      if (ball.x - ball.radius < 0) {
+        ball.x = ball.radius;
+        ball.vx = Math.abs(ball.vx);
+      } else if (ball.x + ball.radius > CANVAS_WIDTH) {
+        ball.x = CANVAS_WIDTH - ball.radius;
+        ball.vx = -Math.abs(ball.vx);
+      }
+
+      if (ball.y - ball.radius < 0) {
+        ball.y = ball.radius;
+        ball.vy = Math.abs(ball.vy);
+      }
+
+      // --- パドルとの衝突判定 ---
+      if (ball.vy > 0) {
+        const isWithinX = (ball.x + ball.radius >= paddle.x) &&
+                          (ball.x - ball.radius <= paddle.x + paddle.width);
+        const isHittingPaddleTop = (ball.y + ball.radius >= paddle.y) &&
+                                   (ball.y - ball.radius <= paddle.y + paddle.height);
+
+        if (isWithinX && isHittingPaddleTop) {
+          ball.y = paddle.y - ball.radius;
+          Sound.playPaddleHit();
+          // ★ パドル反射時はコンボを一切加算せず、リセットもせず、そのまま100%維持してラリー継続！
+
+          const paddleCenter = paddle.x + paddle.width / 2;
+          const hitOffset = (ball.x - paddleCenter) / (paddle.width / 2);
+          const clampedOffset = Math.max(-1, Math.min(1, hitOffset));
+
+          const maxBounceAngle = Math.PI * 0.35;
+          const bounceAngle = clampedOffset * maxBounceAngle;
+
+          ball.vx = effectiveSpeed * Math.sin(bounceAngle);
+          ball.vy = -effectiveSpeed * Math.cos(bounceAngle);
+        }
+      }
+
+      // --- ブロックとの衝突判定（マトリョーシカ分裂対応） ---
+      for (let i = 0; i < blocks.length; i++) {
+        const b = blocks[i];
+        if (!b.alive) continue;
+
+        const closestX = Math.max(b.x, Math.min(ball.x, b.x + b.width));
+        const closestY = Math.max(b.y, Math.min(ball.y, b.y + b.height));
+
+        const distX = ball.x - closestX;
+        const distY = ball.y - closestY;
+        const distSq = distX * distX + distY * distY;
+
+        if (distSq < ball.radius * ball.radius) {
+          if (Math.abs(distX) > Math.abs(distY)) {
+            ball.vx = -ball.vx;
+            ball.x = (distX > 0) ? b.x + b.width + ball.radius : b.x - ball.radius;
+          } else {
+            ball.vy = -ball.vy;
+            ball.y = (distY > 0) ? b.y + b.height + ball.radius : b.y - ball.radius;
+          }
+
+          b.hp--;
+
+          if (b.hp > 0) {
+            Sound.playMetalHit();
+            createSparks(closestX, closestY);
+            registerComboHit(closestX, closestY);
+            addScore(200, closestX, closestY);
+          } else {
+            b.alive = false;
+
+            // マトリョーシカ分裂
+            if (stageData.features.matryoshkaSplit && b.splitOnBreak && !b.isMini) {
+              Sound.playBlockSplit();
+              addFloatingText('SPLIT!', b.x + b.width / 2, b.y - 15, b.baseColor);
+              createParticles(b.x + b.width / 2, b.y + b.height / 2, b.baseColor);
+              registerComboHit(b.x + b.width / 2, b.y + b.height / 2);
+              addScore(100, b.x + b.width / 2, b.y + b.height / 2);
+
+              const miniW = Math.floor(b.width * 0.44);
+              const miniH = Math.floor(b.height * 0.82);
+
+              const mini1 = {
+                baseX: b.x + 2,
+                x: b.x + 2,
+                y: b.y + (b.height - miniH) / 2,
+                width: miniW,
+                height: miniH,
+                maxHp: 1,
+                hp: 1,
+                baseColor: b.baseColor,
+                isMoving: true,
+                movePhase: Math.random() * Math.PI * 2,
+                moveSpeed: 0.035 + Math.random() * 0.015,
+                moveAmp: 25 + Math.random() * 15,
+                alive: true,
+                isMini: true,
+                splitOnBreak: false
+              };
+
+              const mini2 = {
+                baseX: b.x + b.width - miniW - 2,
+                x: b.x + b.width - miniW - 2,
+                y: b.y + (b.height - miniH) / 2,
+                width: miniW,
+                height: miniH,
+                maxHp: 1,
+                hp: 1,
+                baseColor: b.baseColor,
+                isMoving: true,
+                movePhase: Math.random() * Math.PI * 2 + Math.PI,
+                moveSpeed: 0.035 + Math.random() * 0.015,
+                moveAmp: 25 + Math.random() * 15,
+                alive: true,
+                isMini: true,
+                splitOnBreak: false
+              };
+
+              blocks.push(mini1, mini2);
+            } else {
+              Sound.playBlockBreak();
+              createParticles(b.x + b.width / 2, b.y + b.height / 2, b.baseColor);
+              trySpawnItem(b.x + b.width / 2, b.y + b.height / 2);
+              registerComboHit(b.x + b.width / 2, b.y + b.height / 2);
+              const pts = (b.maxHp && b.maxHp > 1) ? 200 : 100;
+              addScore(pts, b.x + b.width / 2, b.y + b.height / 2);
+            }
+
+            if (Math.random() < 0.20) {
+              triggerGlitch();
+            }
+
+            // ブロック破壊ごとの1%スピードアップ（EASYモード時は0%加速＝一切加速せず超スローペース維持）
+            if (currentDifficulty !== 'EASY') {
+              currentBallSpeed *= stageData.ball.speedUpRate;
+              const newEffSpeed = (slowdownTimer > 0) ? currentBallSpeed * 0.6 : currentBallSpeed;
+              const curDir = Math.hypot(ball.vx, ball.vy);
+              if (curDir > 0) {
+                ball.vx = (ball.vx / curDir) * newEffSpeed;
+                ball.vy = (ball.vy / curDir) * newEffSpeed;
+              }
+            }
+          }
+
+          break;
+        }
+      }
+
+      // 残存ブロック数カウント
+      let remainingCount = 0;
+      for (let i = 0; i < blocks.length; i++) {
+        if (blocks[i].alive) remainingCount++;
+      }
+
+      // ステージ5：残り5個でBGM（bgm_stage5）を1.3倍に加速！
+      if (currentStageIndex === 5 && remainingCount <= 5 && remainingCount > 0 && !hasTriggeredSpeedWarning) {
+        hasTriggeredSpeedWarning = true;
+        Sound.playWarning();
+        BGM.setRate(1.3);
+      }
+
+      // ==========================================
+      // 【ステージクリア判定】
+      // ==========================================
+      if (blocks.length > 0 && remainingCount === 0) {
+        if (currentStageIndex >= TOTAL_STAGES) {
+          // ステージ5クリア：グランドフィナーレ（10秒花火連発＆クリアストーリー）へ突入
+          gameState = 'CLEAR_FIREWORKS';
+          clearTimer = 0;
+          clearRevealedChars = 0;
+          glitchTimer = 0;
+          BGM.setRate(1.0);
+
+          const storyOverlay = document.getElementById('storyOverlay');
+          if (storyOverlay) {
+            storyOverlay.classList.remove('hidden');
+            storyOverlay.classList.add('fireworks-mode');
+            const clearStory = STORIES[6];
+            const badge = document.getElementById('storyBadge');
+            if (badge) badge.textContent = '// MISSION COMPLETE // HUMANITY RESTORED';
+            const header = document.getElementById('storySectorHeader');
+            if (header) header.textContent = '★ ALL STAGES CLEAR! ★';
+            const skip = document.getElementById('storySkipGuide');
+            if (skip) skip.textContent = 'PRESS [SPACE] OR CLICK SCREEN FOR CREDITS ▶';
+            updateStoryOverlayText(clearStory, 0);
+          }
+
+          // 敵と弾丸の動きを完全停止
+          enemies.forEach(en => { en.state = 'idle'; en.vx = 0; en.vy = 0; });
+          enemyBullets = [];
+
+          Sound.playStageClear();
+        } else {
+          // ★ 1〜4面クリア：ゲーム完全フリーズ ＆ BGM完全停止 ＆ 勝利ファンファーレ ＆ クリック待ち
+          gameState = 'STAGE_CLEAR_WAIT';
+          stageClearWaitTimer = 0;
+          glitchTimer = 0;
+          slowdownTimer = 0;
+
+          // ゲームの進行（ボール、パドル、敵、弾すべて）をその場でピタッと完全停止
+          ball.vx = 0;
+          ball.vy = 0;
+          enemies.forEach(en => { en.state = 'idle'; en.vx = 0; en.vy = 0; });
+          enemyBullets = [];
+
+          // 【BGMの完全停止】：流れていたBGMをスパッと完全に停止し、静寂を作る
+          BGM.stop();
+
+          // 【勝利の効果音】：静寂の中に「テテテテ、テッテレー！」ファンファーレをドーンと鳴らす
+          Sound.playVictoryFanfare();
+        }
+        return;
+      }
+
+      // 落下ミス判定
+      if (ball.y - ball.radius > CANVAS_HEIGHT) {
+        lives--;
+        currentCombo = 0;
+        Sound.playBallLost();
+
+        if (lives > 0) {
+          resetBall();
+        } else {
+          gameState = 'GAMEOVER';
+          Sound.playGameOver();
+          BGM.stop();
+        }
+      }
+    }
+
+    // キャンバス文字自動折り返し描画（16:9比率内のmax-width: 80%を厳格維持）
+    function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+      let line = '';
+      let curY = y;
+      for (let n = 0; n < text.length; n++) {
+        const testLine = line + text[n];
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+          ctx.fillText(line, x, curY);
+          line = text[n];
+          curY += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      if (line.length > 0) {
+        ctx.fillText(line, x, curY);
+      }
+      return curY;
+    }
+
+    // ==========================================
+    // 14. 描画処理（HUD / ストーリー / 花火 / スタッフロール）
+    // ==========================================
+    function draw() {
+      ctx.save();
+
+      // グリッチ揺れ
+      if (glitchTimer > 0 && gameState === 'PLAYING' && !isPaused) {
+        const shakeX = (Math.random() - 0.5) * 22;
+        const shakeY = (Math.random() - 0.5) * 10;
+        ctx.translate(shakeX, shakeY);
+      }
+
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(-30, -30, CANVAS_WIDTH + 60, CANVAS_HEIGHT + 60);
+
+      // ==========================================
+      // 【ストーリー字幕演出（10秒間・タイピング表示）】
+      // ==========================================
+      if (gameState === 'STORY') {
+        const story = STORIES[storyStageNum] || STORIES[1];
+
+        // サイバーパンク調バックグラウンド
+        ctx.fillStyle = '#050c14';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+        // サイバーグリッド
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < CANVAS_WIDTH; x += 60) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CANVAS_HEIGHT); ctx.stroke();
+        }
+        for (let y = 0; y < CANVAS_HEIGHT; y += 60) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CANVAS_WIDTH, y); ctx.stroke();
+        }
+
+        // 外枠HUDフレーム
+        ctx.strokeStyle = '#00f0ff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 20;
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(100, 100, CANVAS_WIDTH - 200, CANVAS_HEIGHT - 200);
+
+        // ヘッダーセクター名
+        ctx.font = '800 24px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#00ff88';
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 14;
+        ctx.textAlign = 'left';
+        ctx.fillText(`// MISSION BRIEFING // [ ${story.sector} ]`, 140, 160);
+
+        // タイピング進行による文字描画（max-width: 80%自動折り返し対応）
+        let charAcc = 0;
+        const maxLineWidth = CANVAS_WIDTH * 0.8; // 1280px (80%)
+        const startX = (CANVAS_WIDTH - maxLineWidth) / 2; // 160px
+        let curY = 270;
+        ctx.font = '600 28px "Segoe UI", Roboto, monospace, sans-serif';
+
+        for (let i = 0; i < story.lines.length; i++) {
+          const line = story.lines[i];
+          const lineLen = line.length;
+
+          let displayLine = '';
+          if (storyRevealedChars >= charAcc + lineLen) {
+            displayLine = line;
+          } else if (storyRevealedChars > charAcc) {
+            displayLine = line.substring(0, storyRevealedChars - charAcc);
+          }
+          charAcc += lineLen;
+
+          if (displayLine.length > 0) {
+            if (line.startsWith('[LOG]')) {
+              ctx.fillStyle = '#00f0ff';
+              ctx.shadowColor = '#00f0ff';
+            } else if (line.startsWith('[SYSTEM]')) {
+              ctx.fillStyle = '#00ff88';
+              ctx.shadowColor = '#00ff88';
+            } else if (line.startsWith('[WARNING]') || line.startsWith('[EMERGENCY]')) {
+              ctx.fillStyle = '#ff0055';
+              ctx.shadowColor = '#ff0055';
+            } else {
+              ctx.fillStyle = '#ffffff';
+              ctx.shadowColor = '#ffffff';
+            }
+            ctx.shadowBlur = 12;
+
+            curY = drawWrappedText(ctx, displayLine, startX, curY, maxLineWidth, 42);
+            curY += 24;
+          }
+        }
+
+        // 下部プログレスバー（10秒間ゲージ） ＆ スキップ案内
+        const progressRatio = Math.min(1.0, storyTimer / STORY_DURATION);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.fillRect(140, CANVAS_HEIGHT - 170, CANVAS_WIDTH - 280, 6);
+
+        ctx.fillStyle = '#00ff88';
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 10;
+        ctx.fillRect(140, CANVAS_HEIGHT - 170, (CANVAS_WIDTH - 280) * progressRatio, 6);
+
+        ctx.font = '600 20px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#8899aa';
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'center';
+        ctx.fillText('PRESS [SPACE] OR CLICK SCREEN TO SKIP BRIEFING ▶', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 130);
+
+        ctx.restore();
+        return;
+      }
+
+      // ==========================================
+      // 【映画風スタッフロール演出（10秒間）】
+      // ==========================================
+      if (gameState === 'STAFF_ROLL') {
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+        const credits = [
+          { type: 'title', text: "Neon Pulse Barrier" },
+          { type: 'sub', text: "- 最終防衛ライン -" },
+          { type: 'space', text: "" },
+          { type: 'head', text: "- CREDIT -" },
+          { type: 'role', text: "[ DIRECTOR ]" },
+          { type: 'name', text: "ユーザー（司令塔）" },
+          { type: 'space', text: "" },
+          { type: 'role', text: "[ LEAD PROGRAMMER ]" },
+          { type: 'name', text: "Antigravity (AI Agent)" },
+          { type: 'space', text: "" },
+          { type: 'role', text: "[ MUSIC & SOUND ]" },
+          { type: 'name', text: "Public Domain Classic / Web Audio API" },
+          { type: 'space', text: "" },
+          { type: 'role', text: "[ DEVELOPMENT ASSISTANT ]" },
+          { type: 'name', text: "Gemini" },
+          { type: 'space', text: "" },
+          { type: 'head', text: "- THANK YOU FOR PLAYING! -" }
+        ];
+
+        // 10秒（600フレーム）かけて下から上へスクロール（完璧な停止座標計算）
+        const scrollProgress = Math.min(1.0, staffRollTimer / 500);
+        const targetFinalStartY = 52; // 画面上端から52px（ネオングローが一切切れない安全な余白）
+        const initialStartY = CANVAS_HEIGHT + 70; // 画面下端の完全外側からスタート
+        const startY = initialStartY - scrollProgress * (initialStartY - targetFinalStartY);
+        const itemSpacing = 42; // 全17行が700px内に美しく収まる等間隔配置
+
+        credits.forEach((item, index) => {
+          const itemY = startY + index * itemSpacing;
+          if (itemY < -60 || itemY > CANVAS_HEIGHT + 60) return;
+
+          if (item.type === 'title') {
+            // ★【ギラギラで超オシャレなサイバーピンク＆ネオンブルーの多重ネオン発光】★
+            const titlePulse = (Math.sin(staffRollTimer * 0.08) + 1) * 0.5; // 0.0〜1.0 の妖しい明滅
+            ctx.save();
+            ctx.font = '900 46px "Segoe UI", Roboto, monospace, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+
+            // 第1層：深遠な宇宙に広がるネオンブルーの超広角散乱光 (Electric Neon Blue Glow)
+            ctx.shadowColor = '#00f0ff';
+            ctx.shadowBlur = 40 + titlePulse * 18;
+            ctx.fillStyle = '#00f0ff';
+            ctx.fillText(item.text, CANVAS_WIDTH / 2, itemY);
+
+            // 第2層：ギラギラと妖しく発光するサイバーピンクの高輝度オーラ (Vivid Cyber Pink Glow)
+            ctx.shadowColor = '#ff007f';
+            ctx.shadowBlur = 20 + titlePulse * 12;
+            ctx.fillStyle = '#ff2a8d';
+            ctx.fillText(item.text, CANVAS_WIDTH / 2, itemY);
+
+            // 第3層：中心コアの高エネルギー放電ハイライト（超高輝度ホワイト＋ピンクコア）
+            ctx.shadowColor = '#ffffff';
+            ctx.shadowBlur = 6;
+            ctx.fillStyle = '#fff0f7';
+            ctx.fillText(item.text, CANVAS_WIDTH / 2, itemY);
+            ctx.restore();
+          } else if (item.type === 'sub') {
+            // サブタイトル「- 最終防衛ライン -」：逆位相で脈動するネオンブルー＆エメラルド
+            const subPulse = (Math.sin(staffRollTimer * 0.08 + Math.PI) + 1) * 0.5;
+            ctx.save();
+            ctx.font = '900 26px "Segoe UI", Roboto, monospace, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+
+            // ネオンブルーの外層グロー
+            ctx.shadowColor = '#00f0ff';
+            ctx.shadowBlur = 24 + subPulse * 12;
+            ctx.fillStyle = '#00f0ff';
+            ctx.fillText(item.text, CANVAS_WIDTH / 2, itemY);
+
+            // サイバーピンクの内層アクセントとハイライトコア
+            ctx.shadowColor = '#ff007f';
+            ctx.shadowBlur = 10;
+            ctx.fillStyle = '#e6ffff';
+            ctx.fillText(item.text, CANVAS_WIDTH / 2, itemY);
+            ctx.restore();
+          } else if (item.type === 'head') {
+            ctx.save();
+            ctx.font = '900 28px "Segoe UI", Roboto, monospace, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = '#00ff88';
+            ctx.shadowColor = '#00ff88';
+            ctx.shadowBlur = 22;
+            ctx.fillText(item.text, CANVAS_WIDTH / 2, itemY);
+            ctx.restore();
+          } else if (item.type === 'role') {
+            ctx.save();
+            ctx.font = '700 18px "Segoe UI", Roboto, monospace, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = '#00f0ff';
+            ctx.shadowColor = '#00f0ff';
+            ctx.shadowBlur = 12;
+            ctx.fillText(item.text, CANVAS_WIDTH / 2, itemY);
+            ctx.restore();
+          } else if (item.type === 'name') {
+            ctx.save();
+            ctx.font = '800 24px "Segoe UI", Roboto, monospace, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = '#ffffff';
+            ctx.shadowBlur = 10;
+            ctx.fillText(item.text, CANVAS_WIDTH / 2, itemY);
+            ctx.restore();
+          }
+        });
+
+        // スクロール完了後の「画面クリックでタイトルへ戻る」表示（画面下部に完璧に収まる）
+        if (isStaffRollFinished) {
+          const pulse = (Math.sin(staffRollTimer * 0.08) + 1) * 0.5;
+          ctx.save();
+          ctx.font = '800 26px "Segoe UI", Roboto, monospace, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillStyle = `rgba(0, 255, 136, ${0.45 + pulse * 0.55})`;
+          ctx.shadowColor = '#00ff88';
+          ctx.shadowBlur = 20;
+          ctx.fillText('[ 画面クリックでタイトルへ戻る ]', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 70);
+          ctx.restore();
+        }
+
+        ctx.restore();
+        return;
+      }
+
+      // ==========================================
+      // 【花火大会の描画（全クリ直後10秒間連発 ＆ クリアストーリー）】
+      // ==========================================
+      if (gameState === 'CLEAR_FIREWORKS') {
+        ctx.save();
+        for (const r of fireworkRockets) {
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = r.color;
+          ctx.shadowBlur = 18;
+          ctx.beginPath();
+          ctx.arc(r.x, r.y, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        for (const s of fireworkSparks) {
+          ctx.globalAlpha = Math.max(0, s.alpha);
+          ctx.fillStyle = s.color;
+          ctx.shadowColor = s.color;
+          ctx.shadowBlur = 14;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 半透明サイバーパネルでクリアストーリーを描画
+        ctx.fillStyle = 'rgba(0, 10, 25, 0.68)';
+        ctx.fillRect(80, 80, CANVAS_WIDTH - 160, CANVAS_HEIGHT - 160);
+
+        ctx.strokeStyle = '#00ff88';
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 25;
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(80, 80, CANVAS_WIDTH - 160, CANVAS_HEIGHT - 160);
+
+        ctx.textAlign = 'center';
+        ctx.font = '900 64px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#00ff88';
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 35;
+        ctx.fillText('ALL STAGES CLEAR!', CANVAS_WIDTH / 2, 160);
+
+        // 6番目のエンディングストーリーテキスト（max-width: 80%自動折り返し対応）
+        const clearStory = STORIES[6];
+        let cCharAcc = 0;
+        const cMaxLineWidth = CANVAS_WIDTH * 0.8;
+        const cStartX = (CANVAS_WIDTH - cMaxLineWidth) / 2;
+        let cCurY = 270;
+        ctx.font = '600 28px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.textAlign = 'left';
+
+        for (let i = 0; i < clearStory.lines.length; i++) {
+          const line = clearStory.lines[i];
+          const lineLen = line.length;
+
+          let displayLine = '';
+          if (clearRevealedChars >= cCharAcc + lineLen) {
+            displayLine = line;
+          } else if (clearRevealedChars > cCharAcc) {
+            displayLine = line.substring(0, clearRevealedChars - cCharAcc);
+          }
+          cCharAcc += lineLen;
+
+          if (displayLine.length > 0) {
+            if (line.startsWith('[SYSTEM]')) {
+              ctx.fillStyle = '#00ff88';
+              ctx.shadowColor = '#00ff88';
+            } else if (line.startsWith('[LOG]')) {
+              ctx.fillStyle = '#00f0ff';
+              ctx.shadowColor = '#00f0ff';
+            } else {
+              ctx.fillStyle = '#ffffff';
+              ctx.shadowColor = '#ffffff';
+            }
+            ctx.shadowBlur = 14;
+
+            cCurY = drawWrappedText(ctx, displayLine, cStartX, cCurY, cMaxLineWidth, 42);
+            cCurY += 22;
+          }
+        }
+
+        // 10秒進行ゲージ
+        const cProgress = Math.min(1.0, clearTimer / FIREWORKS_DURATION);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.fillRect(140, CANVAS_HEIGHT - 150, CANVAS_WIDTH - 280, 6);
+
+        ctx.fillStyle = '#00ff88';
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 10;
+        ctx.fillRect(140, CANVAS_HEIGHT - 150, (CANVAS_WIDTH - 280) * cProgress, 6);
+
+        ctx.font = '600 20px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#8899aa';
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'center';
+        ctx.fillText('PRESS [SPACE] OR CLICK SCREEN TO ADVANCE TO RESULTS ▶', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 110);
+
+        ctx.restore();
+        return;
+      }
+
+      // ==========================================
+      // 【戦績評価・リザルト画面（5秒間）】
+      // ==========================================
+      if (gameState === 'RESULT') {
+        ctx.save();
+
+        // ディープサイバー背景
+        ctx.fillStyle = '#040914';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+        // サイバーグリッド
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.06)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < CANVAS_WIDTH; x += 60) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CANVAS_HEIGHT); ctx.stroke();
+        }
+        for (let y = 0; y < CANVAS_HEIGHT; y += 60) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CANVAS_WIDTH, y); ctx.stroke();
+        }
+
+        const rFrameW = 1140;
+        const rFrameH = 680;
+        const rFrameX = (CANVAS_WIDTH - rFrameW) / 2;
+        const rFrameY = (CANVAS_HEIGHT - rFrameH) / 2;
+
+        // グラスモーフィズムパネル
+        ctx.fillStyle = 'rgba(2, 14, 28, 0.90)';
+        ctx.fillRect(rFrameX, rFrameY, rFrameW, rFrameH);
+
+        // 外周ネオングロー枠
+        ctx.strokeStyle = '#00f0ff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 28;
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(rFrameX, rFrameY, rFrameW, rFrameH);
+
+        // 上部ヘッダー
+        ctx.font = '800 20px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#00ff88';
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 12;
+        ctx.textAlign = 'center';
+        ctx.fillText('// MISSION DEBRIEFING // FINAL COMBAT RESULTS', CANVAS_WIDTH / 2, rFrameY + 50);
+
+        // タイトル
+        ctx.font = '900 52px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 24;
+        ctx.fillText('MISSION ACCOMPLISHED', CANVAS_WIDTH / 2, rFrameY + 115);
+
+        // 区切りライン
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(rFrameX + 80, rFrameY + 140);
+        ctx.lineTo(rFrameX + rFrameW - 80, rFrameY + 140);
+        ctx.stroke();
+
+        // 戦績ステータス表示
+        const statStartY = rFrameY + 205;
+        const rowGap = 65;
+
+        // 行1: YOUR SCORE
+        ctx.font = '700 26px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#88aacc';
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'left';
+        ctx.fillText('FINAL SCORE', rFrameX + 130, statStartY);
+
+        ctx.font = '900 36px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#ffd700';
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 18;
+        ctx.textAlign = 'right';
+        ctx.fillText(formatScore(score), rFrameX + rFrameW - 130, statStartY);
+
+        // 行2: HIGH SCORE
+        ctx.font = '700 26px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#88aacc';
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'left';
+        ctx.fillText('HIGH SCORE', rFrameX + 130, statStartY + rowGap);
+
+        ctx.font = '900 36px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#00f0ff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 18;
+        ctx.textAlign = 'right';
+        ctx.fillText(formatScore(highScore), rFrameX + rFrameW - 130, statStartY + rowGap);
+
+        // 行3: MAX COMBO
+        ctx.font = '700 26px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#88aacc';
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'left';
+        ctx.fillText('MAX COMBO', rFrameX + 130, statStartY + rowGap * 2);
+
+        ctx.font = '900 36px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#ff00aa';
+        ctx.shadowColor = '#ff00aa';
+        ctx.shadowBlur = 18;
+        ctx.textAlign = 'right';
+        ctx.fillText(`${maxCombo} HITS`, rFrameX + rFrameW - 130, statStartY + rowGap * 2);
+
+        // 戦績評価ランク決定
+        let rankLetter = 'A';
+        let rankTitle = 'GUARDIAN OPERATIVE (優秀守備兵)';
+        let rankColor = '#ff77aa';
+        if (score >= 25000) {
+          rankLetter = 'SSS';
+          rankTitle = 'GOD OF BARRIER (伝説の防衛神)';
+          rankColor = '#ffd700';
+        } else if (score >= 18000) {
+          rankLetter = 'SS';
+          rankTitle = 'SUPREME DEFENDER (至高の防衛官)';
+          rankColor = '#00f0ff';
+        } else if (score >= 10000) {
+          rankLetter = 'S';
+          rankTitle = 'ELITE INTERCEPTOR (精鋭迎撃士)';
+          rankColor = '#00ff88';
+        }
+
+        // ランクバッジ描画
+        const rankCenterY = rFrameY + 445;
+        ctx.font = '800 22px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#8899aa';
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'center';
+        ctx.fillText('CLEAR RANK EVALUATION', CANVAS_WIDTH / 2, rankCenterY - 30);
+
+        const rankPulse = (Math.sin(resultTimer * 0.1) + 1) * 0.5;
+        ctx.font = '900 72px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = rankColor;
+        ctx.shadowColor = rankColor;
+        ctx.shadowBlur = 30 + rankPulse * 15;
+        ctx.textAlign = 'center';
+        ctx.fillText(`[ ${rankLetter} ]`, CANVAS_WIDTH / 2, rankCenterY + 38);
+
+        ctx.font = '800 22px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = rankColor;
+        ctx.shadowBlur = 10;
+        ctx.fillText(rankTitle, CANVAS_WIDTH / 2, rankCenterY + 76);
+
+        // 5秒プログレスバー
+        const rProgress = Math.min(1.0, resultTimer / RESULT_DURATION);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.fillRect(rFrameX + 80, rFrameY + rFrameH - 68, rFrameW - 160, 6);
+
+        ctx.fillStyle = '#00ff88';
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 12;
+        ctx.fillRect(rFrameX + 80, rFrameY + rFrameH - 68, (rFrameW - 160) * rProgress, 6);
+
+        // スキップ案内
+        const pulse = (Math.sin(resultTimer * 0.08) + 1) * 0.5;
+        ctx.font = '700 20px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = `rgba(0, 240, 255, ${0.5 + pulse * 0.5})`;
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 10;
+        ctx.textAlign = 'center';
+        ctx.fillText('PRESS [SPACE] OR CLICK SCREEN TO ADVANCE TO CREDITS ▶', CANVAS_WIDTH / 2, rFrameY + rFrameH - 30);
+
+        ctx.restore();
+        return;
+      }
+
+      let remainingCount = 0;
+      for (let i = 0; i < blocks.length; i++) {
+        if (blocks[i].alive) remainingCount++;
+      }
+
+      // --- ブロック描画 ---
+      for (const b of blocks) {
+        if (!b.alive) continue;
+        ctx.save();
+
+        if (b.isMini) {
+          ctx.fillStyle = b.baseColor;
+          ctx.shadowColor = b.baseColor;
+          ctx.shadowBlur = 16;
+          ctx.beginPath();
+          ctx.roundRect(b.x, b.y, b.width, b.height, 5);
+          ctx.fill();
+
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.font = '900 12px "Segoe UI", Roboto, monospace, sans-serif';
+          ctx.fillStyle = '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('◈', b.x + b.width / 2, b.y + b.height / 2);
+          ctx.restore();
+          continue;
+        }
+
+        ctx.fillStyle = b.baseColor;
+        ctx.shadowColor = b.baseColor;
+        ctx.shadowBlur = (b.hp === b.maxHp) ? 14 : 7;
+
+        ctx.beginPath();
+        ctx.roundRect(b.x, b.y, b.width, b.height, 6);
+        ctx.fill();
+
+        if (b.isMoving) {
+          ctx.font = '900 14px "Segoe UI", Roboto, monospace, sans-serif';
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowBlur = 8;
+          ctx.textAlign = 'left';
+          ctx.fillText('◀', b.x + 8, b.y + b.height / 2 + 5);
+          ctx.textAlign = 'right';
+          ctx.fillText('▶', b.x + b.width - 8, b.y + b.height / 2 + 5);
+        }
+
+        if (b.hp < b.maxHp) {
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+
+          if (b.maxHp - b.hp === 1) {
+            ctx.moveTo(b.x + b.width * 0.3, b.y + 4);
+            ctx.lineTo(b.x + b.width * 0.45, b.y + b.height * 0.55);
+            ctx.lineTo(b.x + b.width * 0.35, b.y + b.height - 4);
+          } else {
+            ctx.moveTo(b.x + b.width * 0.25, b.y + 4);
+            ctx.lineTo(b.x + b.width * 0.4, b.y + b.height * 0.5);
+            ctx.lineTo(b.x + b.width * 0.3, b.y + b.height - 4);
+            ctx.moveTo(b.x + b.width * 0.65, b.y + 4);
+            ctx.lineTo(b.x + b.width * 0.55, b.y + b.height * 0.6);
+            ctx.lineTo(b.x + b.width * 0.75, b.y + b.height - 4);
+          }
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // --- エイリアン描画 ---
+      for (const en of enemies) {
+        if (en.state === 'respawning') continue;
+
+        ctx.save();
+        ctx.translate(en.x, en.y);
+        ctx.rotate(en.angle);
+
+        ctx.strokeStyle = en.color;
+        ctx.fillStyle = en.color;
+        ctx.shadowColor = en.color;
+        ctx.shadowBlur = 18;
+        ctx.lineWidth = 3;
+
+        ctx.beginPath();
+        ctx.moveTo(0, 18);
+        ctx.lineTo(-14, 6);
+        ctx.lineTo(-24, -10);
+        ctx.lineTo(-12, -6);
+        ctx.lineTo(0, -18);
+        ctx.lineTo(12, -6);
+        ctx.lineTo(24, -10);
+        ctx.lineTo(14, 6);
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = 12;
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      // --- 敵の弾丸描画 ---
+      for (const eb of enemyBullets) {
+        ctx.save();
+        if (eb.isRing) {
+          ctx.fillStyle = eb.color;
+          ctx.shadowColor = eb.color;
+          ctx.shadowBlur = 14;
+          ctx.beginPath();
+          ctx.arc(eb.x, eb.y, 5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(eb.x, eb.y, 2, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = eb.color;
+          ctx.shadowColor = eb.color;
+          ctx.shadowBlur = 16;
+          ctx.beginPath();
+          ctx.roundRect(eb.x - eb.width / 2, eb.y - eb.height / 2, eb.width, eb.height, 4);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(eb.x - 1.5, eb.y - eb.height / 2 + 2, 3, eb.height - 4);
+        }
+        ctx.restore();
+      }
+
+      // --- アイテムカプセル描画 ---
+      for (const it of items) {
+        ctx.save();
+        ctx.fillStyle = it.color;
+        ctx.shadowColor = it.color;
+        ctx.shadowBlur = 18;
+
+        ctx.beginPath();
+        ctx.roundRect(it.x - it.width / 2, it.y - it.height / 2, it.width, it.height, it.height / 2);
+        ctx.fill();
+
+        ctx.font = '900 12px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#000000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(it.text, it.x, it.y + 1);
+        ctx.restore();
+      }
+
+      // --- パーティクル描画 ---
+      ctx.save();
+      for (const p of particles) {
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // --- ショックウェーブ（ネオン・ボム電磁バースト）描画 ---
+      for (const sw of shockwaves) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, sw.alpha);
+
+        // 中心部グローグラデーション
+        const grad = ctx.createRadialGradient(sw.x, sw.y, 0, sw.x, sw.y, Math.max(1, sw.radius));
+        grad.addColorStop(0, 'rgba(255, 255, 255, 0.65)');
+        grad.addColorStop(0.35, 'rgba(255, 0, 85, 0.38)');
+        grad.addColorStop(0.75, 'rgba(255, 170, 0, 0.18)');
+        grad.addColorStop(1, 'rgba(0, 240, 255, 0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, Math.max(1, sw.radius), 0, Math.PI * 2);
+        ctx.fill();
+
+        // 外周主衝撃波リング（ネオンクリムゾン）
+        ctx.strokeStyle = '#ff0055';
+        ctx.shadowColor = '#ff0055';
+        ctx.shadowBlur = 28;
+        ctx.lineWidth = sw.lineWidth;
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, Math.max(1, sw.radius), 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 外周副衝撃波リング（ネオンシアン）
+        ctx.strokeStyle = '#00f0ff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 16;
+        ctx.lineWidth = Math.max(2, sw.lineWidth * 0.4);
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, Math.max(1, sw.radius - 14), 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      // --- フローティングテキスト描画 ---
+      ctx.save();
+      for (const ft of floatingTexts) {
+        ctx.globalAlpha = Math.max(0, ft.alpha);
+        const fSize = ft.fontSize || 24;
+        ctx.font = `900 ${fSize}px "Segoe UI", Roboto, monospace, sans-serif`;
+        ctx.fillStyle = ft.color;
+        ctx.shadowColor = ft.color;
+        ctx.shadowBlur = (fSize > 24) ? 22 : 15;
+        ctx.textAlign = 'center';
+        ctx.fillText(ft.text, ft.x, ft.y);
+      }
+      ctx.restore();
+
+      // --- パドル描画 ---
+      ctx.save();
+      ctx.fillStyle = paddle.color;
+      ctx.shadowColor = paddle.color;
+      ctx.shadowBlur = 16;
+      ctx.beginPath();
+      ctx.roundRect(paddle.x, paddle.y, paddle.width, paddle.height, 8);
+      ctx.fill();
+      ctx.restore();
+
+      // --- ボール描画 ---
+      ctx.save();
+      const ballCol = (slowdownTimer > 0) ? '#00f0ff' : ball.color;
+      ctx.fillStyle = ballCol;
+      ctx.shadowColor = ballCol;
+      ctx.shadowBlur = (slowdownTimer > 0) ? 22 : 12;
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // --- グリッチ走査線オーバーレイ ---
+      if (glitchTimer > 0 && gameState === 'PLAYING' && !isPaused) {
+        ctx.save();
+        for (let i = 0; i < 4; i++) {
+          const barY = Math.random() * CANVAS_HEIGHT;
+          const barH = Math.random() * 25 + 5;
+          ctx.fillStyle = (Math.random() < 0.5) ? 'rgba(0, 240, 255, 0.35)' : 'rgba(255, 0, 85, 0.35)';
+          ctx.fillRect(0, barY, CANVAS_WIDTH, barH);
+        }
+        ctx.restore();
+      }
+
+      // --- 【ネオン調 HUD: LIFE ＆ BOMB ＆ SCORE ＆ STAGE ＆ HI-SCORE ＆ BLOCKS】 ---
+      ctx.save();
+
+      // 左端：LIFE
+      ctx.textAlign = 'left';
+      ctx.font = '700 26px "Segoe UI", Roboto, monospace, sans-serif';
+      ctx.fillStyle = '#00f0ff';
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 12;
+      ctx.fillText(`LIFE: ${lives}`, 45, 58);
+
+      // 左中：BOMB
+      ctx.font = '800 24px "Segoe UI", Roboto, monospace, sans-serif';
+      ctx.fillStyle = (bombs > 0) ? '#ff0055' : '#666688';
+      ctx.shadowColor = (bombs > 0) ? '#ff0055' : 'transparent';
+      ctx.shadowBlur = (bombs > 0) ? 14 : 0;
+      ctx.fillText(`BOMB: ${bombs}/${MAX_BOMBS}`, 175, 58);
+
+      // 左中央：SCORE
+      ctx.font = '800 24px "Segoe UI", Roboto, monospace, sans-serif';
+      ctx.fillStyle = '#ffd700';
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 14;
+      ctx.fillText(`SCORE: ${formatScore(score)}`, 330, 58);
+
+      // 中央：STAGE 番号 ＆ カプセル低速表示
+      ctx.textAlign = 'center';
+      if (slowdownTimer > 0 && gameState === 'PLAYING') {
+        const remainingSec = (slowdownTimer / 60).toFixed(1);
+        ctx.font = '700 24px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#00f0ff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 15;
+        ctx.fillText(`STAGE ${currentStageIndex}/${TOTAL_STAGES}  ⏳ SLOW: ${remainingSec}s`, CANVAS_WIDTH / 2, 58);
+      } else {
+        ctx.font = '800 26px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#00ff88';
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 14;
+        ctx.fillText(`STAGE ${currentStageIndex} / ${TOTAL_STAGES}`, CANVAS_WIDTH / 2, 58);
+      }
+
+      // 右中央：HI-SCORE
+      ctx.textAlign = 'left';
+      ctx.font = '800 24px "Segoe UI", Roboto, monospace, sans-serif';
+      ctx.fillStyle = '#00f0ff';
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 12;
+      ctx.fillText(`HI: ${formatScore(highScore)}`, 1080, 58);
+
+      // 右端：BLOCKS
+      ctx.textAlign = 'right';
+      ctx.font = '700 26px "Segoe UI", Roboto, monospace, sans-serif';
+      ctx.fillStyle = (remainingCount <= 5) ? '#ff0055' : '#ffaa00';
+      ctx.shadowColor = (remainingCount <= 5) ? '#ff0055' : '#ffaa00';
+      ctx.shadowBlur = (remainingCount <= 5) ? 20 : 12;
+      ctx.fillText(`BLOCKS: ${remainingCount}`, CANVAS_WIDTH - 45, 58);
+      ctx.restore();
+
+      // --- 【無限ネオンコンボ表示（STAGE直下に脈動パルス表示）】 ---
+      if (currentCombo >= 1 && gameState === 'PLAYING') {
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        let comboColor = '#00f0ff';
+        let comboGlow = 16;
+        let comboLabel = `⚡ COMBO ${currentCombo} ⚡`;
+        if (currentCombo >= 100) {
+          comboColor = '#ff00d4';
+          comboGlow = 36;
+          comboLabel = `★ COSMIC COMBO ${currentCombo} ★`;
+        } else if (currentCombo >= 50) {
+          comboColor = '#ff00aa';
+          comboGlow = 28;
+        } else if (currentCombo >= 20) {
+          comboColor = '#ffd700';
+          comboGlow = 24;
+        } else if (currentCombo >= 10) {
+          comboColor = '#00ff88';
+          comboGlow = 20;
+        }
+
+        const scale = 1.0 + (comboAnimTimer / 18) * 0.35;
+        ctx.translate(CANVAS_WIDTH / 2, 98);
+        ctx.scale(scale, scale);
+
+        ctx.font = '900 24px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = comboColor;
+        ctx.shadowColor = comboColor;
+        ctx.shadowBlur = comboGlow;
+        ctx.fillText(comboLabel, 0, 0);
+
+        ctx.restore();
+      }
+
+      // --- 【100コンボ達成時の全画面レインボーフラッシュ（1.5秒）】 ---
+      if (rainbowFlashTimer > 0) {
+        ctx.save();
+        const hue = (Date.now() / 2) % 360;
+        const flashAlpha = (rainbowFlashTimer / 90) * 0.36;
+        ctx.fillStyle = `hsla(${hue}, 100%, 65%, ${flashAlpha})`;
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        ctx.restore();
+      }
+
+      // ==========================================
+      // 【★新設：1〜4面クリア時の一時停止＆クリック待ち演出】
+      // ==========================================
+      if (gameState === 'STAGE_CLEAR_WAIT') {
+        ctx.save();
+
+        // プレイエリアを落ち着いたサイバー調に薄く暗転
+        ctx.fillStyle = 'rgba(0, 8, 20, 0.62)';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+        const frameW = 1040;
+        const frameH = 340;
+        const frameX = (CANVAS_WIDTH - frameW) / 2;
+        const frameY = (CANVAS_HEIGHT - frameH) / 2;
+
+        // サイバーグラスパネル
+        ctx.fillStyle = 'rgba(0, 20, 35, 0.88)';
+        ctx.fillRect(frameX, frameY, frameW, frameH);
+
+        // ネオングロー枠線
+        ctx.strokeStyle = '#00ff88';
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 32;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(frameX, frameY, frameW, frameH);
+
+        // ヘッダー情報
+        ctx.font = '800 18px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#00f0ff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 14;
+        ctx.textAlign = 'center';
+        ctx.fillText(`// DEFENSE SECTOR 0${currentStageIndex} COMPLETED //`, CANVAS_WIDTH / 2, frameY + 54);
+
+        // メインタイトル：STAGE X CLEAR!
+        ctx.font = '900 76px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#00ff88';
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 42;
+        ctx.fillText(`STAGE ${currentStageIndex} CLEAR!`, CANVAS_WIDTH / 2, frameY + 145);
+
+        // ネオン点滅のクリック誘導テキスト
+        const pulse = (Math.sin(stageClearWaitTimer * 0.08) + 1) * 0.5;
+        ctx.font = '900 32px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = `rgba(0, 240, 255, ${0.45 + pulse * 0.55})`;
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 22;
+        ctx.fillText('STAGE CLEAR! CLICK TO NEXT STORY ▶', CANVAS_WIDTH / 2, frameY + 228);
+
+        // 日本語サブ案内
+        ctx.font = '600 20px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.5 + pulse * 0.5})`;
+        ctx.shadowBlur = 8;
+        ctx.fillText('[ 画面をクリックまたはタップで次のストーリーへ ]', CANVAS_WIDTH / 2, frameY + 285);
+
+        ctx.restore();
+      }
+
+      // ==========================================
+      // 【ポーズ（一時停止）オーバーレイ】
+      // ==========================================
+      if (isPaused) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        ctx.restore();
+      }
+
+      // ==========================================
+      // 【GAME OVER 表示】
+      // ==========================================
+      if (gameState === 'GAMEOVER') {
+        ctx.save();
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '900 86px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#ff0055';
+        ctx.shadowColor = '#ff0055';
+        ctx.shadowBlur = 38;
+        ctx.fillText('GAME OVER', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 80);
+
+        // 戦績スコア・ハイスコア・最大コンボ表示
+        ctx.font = '800 26px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#ffd700';
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 15;
+        ctx.fillText(`FINAL SCORE: ${formatScore(score)}   |   HI-SCORE: ${formatScore(highScore)}   |   MAX COMBO: ${maxCombo}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 5);
+
+        // 「CLICK TO RETURN TO TITLE（クリックでタイトルへ戻る）」ネオン点滅表示
+        const blinkAlpha = 0.45 + 0.55 * Math.sin(Date.now() / 220);
+        ctx.save();
+        ctx.globalAlpha = Math.max(0.12, blinkAlpha);
+        ctx.font = '700 28px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#00f0ff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 18;
+        ctx.fillText('CLICK TO RETURN TO TITLE', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 70);
+
+        ctx.font = '600 18px "Segoe UI", Roboto, monospace, sans-serif';
+        ctx.fillStyle = '#8899aa';
+        ctx.shadowBlur = 8;
+        ctx.fillText('（クリックでタイトルへ戻る）', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 110);
+        ctx.restore();
+
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    // ==========================================
+    // 15. メインゲームループ
+    // ==========================================
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // ユーザー操作による初回オーディオアンロック
+    function unlockAudioHandler() {
+      Sound.init();
+      if (BGM.audio && BGM.audio.paused && BGM.currentTrackKey) {
+        BGM.resume();
+      } else if (!BGM.currentTrackKey) {
+        if (gameState === 'TITLE') {
+          BGM.playTrack('title');
+        } else if (gameState === 'STAFF_ROLL') {
+          BGM.playTrack('credits');
+        }
+      }
+    }
+
+    window.addEventListener('pointerdown', unlockAudioHandler);
+    window.addEventListener('keydown', unlockAudioHandler);
+
+    // 初期化：タイトルBGM待機＆ハイスコアUI反映＆ゲームループ開始
+    updateTitleHiScoreUI();
+    BGM.playTrack('title');
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>

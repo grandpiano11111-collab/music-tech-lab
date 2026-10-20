@@ -1,0 +1,18 @@
+{
+  "stageNumber": 3,
+  "name": "STAGE 3: CAPSULE CARNIVAL",
+  "spawnEnemy": 1,
+  "itemDropRate": 0.65,
+  "isMating": false,
+  "movingBlocksRow": null,
+  "blockType": {
+    "1": { "maxHp": 1, "baseColor": "#00ff88" },
+    "4": { "maxHp": 1, "baseColor": "#00f0ff" }
+  },
+  "blocks": [
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [4, 4, 4, 4, 4, 4, 4, 4],
+    [1, 1, 1, 1, 1, 1, 1, 1]
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "stageNumber": 4,
+  "name": "STAGE 4: CYBER V-STRIKE",
+  "spawnEnemy": 2,
+  "itemDropRate": 0.15,
+  "isMating": true,
+  "movingBlocksRow": null,
+  "blockType": {
+    "1": { "maxHp": 1, "baseColor": "#ff007f" },
+    "4": { "maxHp": 1, "baseColor": "#00f0ff" },
+    "2": { "maxHp": 2, "baseColor": "#ffaa00" }
+  },
+  "blocks": [
+    [1, 4, 0, 0, 0, 0, 4, 1],
+    [0, 1, 4, 0, 0, 4, 1, 0],
+    [0, 0, 1, 0, 0, 1, 0, 0],
+    [0, 0, 0, 2, 2, 0, 0, 0]
+  ]
+}

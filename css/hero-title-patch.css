@@ -1,0 +1,110 @@
+/* ==========================================================================
+   HERO 大見出し（メインタイトル）文字数制限完全撤廃 ＆ スペース（空白）100%反映パッチ
+   ファイル名: css/hero-title-patch.css
+   ========================================================================== */
+
+/* ヒーローメインタイトル要素の完全解放 */
+#heroMainTitle,
+.hero-title,
+.hero-title-fullname,
+.hero-title-wrap,
+#hero .hero-title-fullname,
+#hero .hero-title-wrap {
+  /* 【1. スペース・空白・改行100%維持仕様】半角・全角スペースや改行の個数・長さを100%忠実に維持 */
+  white-space: pre-wrap !important;
+
+  /* 【2. 自動改行セーフティガード】画面端・コンテナ端で確実に自動改行し文字欠け・途中切れを完全防止 */
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+  line-break: anywhere !important;
+
+  /* 【3. 横幅100%完全確保 ＆ レイアウト完全解放】 */
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+
+  /* 【4. 文字数制限（ブレーキ）の完全撤廃】 */
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+  max-height: none !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+/* タイトル内部グループのflex制約・gap干渉を完全撤廃し、インラインテキストフローに統一 */
+#heroMainTitle .title-group-main,
+#heroMainTitle .title-group-brand,
+.hero-title-fullname .title-group-main,
+.hero-title-fullname .title-group-brand {
+  display: inline !important;
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+  line-break: anywhere !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* 全内部要素（セグメント・グローテキスト・ブラケット・記号等）の nowrap を完全解除 */
+#heroMainTitle .title-segment,
+#heroMainTitle .text-white-glow,
+#heroMainTitle .brand-name-glow,
+#heroMainTitle .brand-bracket,
+#heroMainTitle .title-ampersand,
+#heroMainTitle .title-separator-dot,
+#heroMainTitle .text-piano-accent,
+#heroMainTitle * {
+  display: inline !important;
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+  line-break: anywhere !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* ヒーローコンテナ・ラッパーの中央配置 ＆ 心地よい余白の維持 */
+#hero .hero-container,
+.hero-container {
+  overflow: visible !important;
+  width: 100% !important;
+  max-width: 1360px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+}
+
+#hero .hero-title-wrap,
+.hero-title-wrap {
+  overflow: visible !important;
+  width: 100% !important;
+  max-width: 1180px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+}
+
+/* 管理画面（ポップアップ＆専用ページ）入力フォームのスペース・自動改行完全保持 */
+#popHeroMainTitle,
+#heroMainTitleInput {
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}

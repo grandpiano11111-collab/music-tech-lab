@@ -1,0 +1,17 @@
+{
+  "stageNumber": 1,
+  "name": "STAGE 1: NEON RECTANGLE",
+  "spawnEnemy": 0,
+  "itemDropRate": 0.15,
+  "isMating": false,
+  "movingBlocksRow": null,
+  "blockType": {
+    "1": { "maxHp": 1, "baseColor": "#00ff88" },
+    "4": { "maxHp": 1, "baseColor": "#00f0ff" }
+  },
+  "blocks": [
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [4, 4, 4, 4, 4, 4, 4, 4],
+    [1, 1, 1, 1, 1, 1, 1, 1]
+  ]
+}
