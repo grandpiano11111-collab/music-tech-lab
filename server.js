@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { exec } = require('child_process');
 
 // =========================================================================
 // 自動復帰シールド (CRASH SHIELD & SELF-RECOVERY)
@@ -523,6 +524,15 @@ const server = http.createServer((req, res) => {
           try { fs.writeFileSync(LEGACY_SYNC_FILE, serialized, 'utf8'); } catch (e) {}
           try { fs.writeFileSync(LEGACY_BACKUP_FILE, serialized, 'utf8'); } catch (e) {}
           try { fs.writeFileSync(LEGACY_VAULT_FILE, serialized, 'utf8'); } catch (e) {}
+
+          // Windows PC管理パネルからの更新時、公開URL（GitHub Pages）へも裏側で自動プッシュ反映
+          if (isLocalhostRequest(req)) {
+            exec(
+              'git add sync-data.json sync-data.backup.json data-vault/sync-data.vault.json && git commit -m "Sync latest admin panel data" && git push origin main',
+              { cwd: ROOT_DIR, windowsHide: true },
+              () => {}
+            );
+          }
 
           try {
             syncLastModified = fs.statSync(SYNC_DATA_FILE).mtimeMs;
