@@ -432,12 +432,15 @@
             ];
             for (const ep of endpoints) {
               try {
-                fetch(ep, {
+                const res = await fetch(ep, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(localPayload)
-                }).catch(() => {});
-                break;
+                });
+                if (res.ok) {
+                  console.log('[VoteLock Auto-Export] Synced browser data to server port 8888 via', ep);
+                  break;
+                }
               } catch (e) {}
             }
           }

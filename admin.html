@@ -1877,19 +1877,21 @@
       if (count === 0) return;
 
       const endpoints = [
-        getSyncApiUrl('/api/sync'),
         'http://127.0.0.1:8888/api/sync',
-        'http://localhost:8888/api/sync'
+        'http://localhost:8888/api/sync',
+        getSyncApiUrl('/api/sync')
       ];
       for (const ep of endpoints) {
         try {
-          await fetch(ep, {
+          const res = await fetch(ep, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
-          console.log('[Admin Auto-Export] Successfully written browser data to sync-data.json via', ep);
-          break;
+          if (res.ok) {
+            console.log('[Admin Auto-Export] Successfully written browser data to sync-data.json via', ep);
+            break;
+          }
         } catch (e) {}
       }
     }
@@ -2318,7 +2320,7 @@
       renderAll();
     }
 
-    function saveState() {
+    async function saveState() {
       // 保存前に全ての動画IDとサムネイルを確実にサニタイズ
       state.regularVideos = state.regularVideos.map(v => {
         const cleanId = extractYouTubeId(v.youtubeId || v.id) || v.youtubeId;
@@ -2348,40 +2350,40 @@
 
       // 00 HEADER エリアのテキスト情報の保存
       const headerInfo = {
-        title: getRawVal('headerLogoTitleInput', 'MUSIC TECH LAB'),
-        tag: getRawVal('headerLogoTagInput', '最新アニソン&ゲーム音楽・ピアノCH')
+        title: getRawVal('headerLogoTitleInput', '【公式楽譜ストア】MUSIC TECH LAB'),
+        tag: getRawVal('headerLogoTagInput', 'アニソンピアノ & AIアプリ開発')
       };
 
-      // 00 HERO エリアのテキスト情報の保存（管理パネル入力通り100%素直に保存）
+      // 00 HERO エリアのテキスト情報の保存
       const heroInfo = {
-        title: getRawVal('heroMainTitleInput', '最新アニソン＆ゲーム音楽・ピアノCH 【Music Tech Lab】'),
-        tagline: getRawVal('heroTaglineInput', '88鍵が描き出す、原曲の熱量とシネマティックな音響美学。\n最新アニメ・ゲームの名曲を、初心者から愛好家まで楽しめるハイブリッド仕様でお届けします。'),
-        metaTag: getRawVal('heroMetaTagInput', 'MUSIC TECH LAB / 最新アニソン＆ゲーム音楽・ピアノCH'),
+        title: getRawVal('heroMainTitleInput', '【公式楽譜ストア】　　　　　　　  MUSIC TECH LAB\nアニソンピアノ ＆ 　　　　　　　　　AIアプリ開発'),
+        tagline: getRawVal('heroTaglineInput', 'プログラミングコードを1ミリも書けない状態から、開発の相棒であるGemini（ジェミニ）と何回も相談を重ね、その設計図をGoogle AntiGravity（アンチグラビティ）に打ち込むことで、このWebサイトも4番メニューの自作ゲームもすべて二人三脚で構築しました。4番セクション【04 LAB APPS】にて実際に遊べますので、Windowsパソコンからぜひ気軽に体験してみてください！'),
+        metaTag: getRawVal('heroMetaTagInput', 'OFFICIAL SHEET MUSIC STORE / ANIME & GAME PIANO ARCHIVE'),
         metaSub: getRawVal('heroMetaSubInput', 'ANIME & GAME MUSIC PIANO ARCHIVE'),
         brandPill: getRawVal('heroBrandPillInput', 'OFFICIAL PIANO ARCHIVE'),
         statLabel1: getRawVal('heroStatLabel1Input', 'TOTAL TRACKS'),
-        statTotal: getRawVal('heroStatTotalInput', '130+ Works'),
+        statTotal: getRawVal('heroStatTotalInput', 'EXPANDING TRACKS'),
         statLabel2: getRawVal('heroStatLabel2Input', 'ARRANGEMENTS'),
         statArrangements: getRawVal('heroStatArrangementsInput', 'One-Chorus & Virtuoso'),
-        statLabel3: getRawVal('heroStatLabel3Input', 'AUDIO MASTERS'),
-        statAudio: getRawVal('heroStatAudioInput', 'Lossless High-Res')
+        statLabel3: getRawVal('heroStatLabel3Input', 'POWERED BY ANTIGRAVITY'),
+        statAudio: getRawVal('heroStatAudioInput', 'EXPERIMENTAL GAME')
       };
 
       // 01 FEATURES セクションのテキスト情報の保存
       const featuresInfo = {
-        badge: document.getElementById('featuresSectionBadgeInput')?.value.trim() || 'MULTI-LAYERED VISUAL SPECIFICATIONS',
-        title: document.getElementById('featuresSectionTitleInput')?.value.trim() || '01 / FEATURES (動画のこだわり)',
-        desc: document.getElementById('featuresSectionDescInput')?.value.trim() || '歌える・学べる・弾ける。すべての動画に施された5層のマルチ情報。\n初心者から海外ファンまで、見るだけで演奏が深まる究極の映像仕様。',
+        badge: document.getElementById('featSectionBadgeInput')?.value.trim() || 'MULTI-LAYERED VISUAL SPECIFICATIONS',
+        title: document.getElementById('featSectionTitleInput')?.value.trim() || '01 / FEATURES (動画のこだわり)',
+        desc: document.getElementById('featSectionDescInput')?.value.trim() || '歌える・学べる・弾ける。すべての動画に施された5層のマルチ情報。\n初心者から海外ファンまで、見るだけで演奏が深まる究極の映像仕様。',
         card1Badge: document.getElementById('featCard1BadgeInput')?.value.trim() || 'SING ALONG',
         card1En: document.getElementById('featCard1EnInput')?.value.trim() || 'JAPANESE LYRICS',
         card1Ja: document.getElementById('featCard1JaInput')?.value.trim() || '日本語歌詞',
         card1Desc: document.getElementById('featCard1DescInput')?.value.trim() || '一緒に歌える、原曲のニュアンスや感情がダイレクトに伝わる洗練された日本語歌詞。',
         card1Tag: document.getElementById('featCard1TagInput')?.value.trim() || 'ニュアンスが伝わる',
-        card2Badge: document.getElementById('featCard2BadgeInput')?.value.trim() || 'GLOBAL FANS',
-        card2En: document.getElementById('featCard2EnInput')?.value.trim() || 'ROMAJI / ENGLISH LYRICS',
-        card2Ja: document.getElementById('featCard2JaInput')?.value.trim() || 'アルファベット歌詞',
-        card2Desc: document.getElementById('featCard2DescInput')?.value.trim() || '海外のファンも楽しめる英語・ローマ字歌詞。世界中どこからでも一緒に楽しめます。',
-        card2Tag: document.getElementById('featCard2TagInput')?.value.trim() || '海外ファンも楽しめる',
+        card2Badge: document.getElementById('featCard2BadgeInput')?.value.trim() || 'GLOBAL SINGING',
+        card2En: document.getElementById('featCard2EnInput')?.value.trim() || 'ROMAJI LYRICS',
+        card2Ja: document.getElementById('featCard2JaInput')?.value.trim() || 'ローマ字歌詞',
+        card2Desc: document.getElementById('featCard2DescInput')?.value.trim() || '日本語が読めない海外ファンや初心者でも、原曲の発音通りに美しく歌えるアルファベット表記。',
+        card2Tag: document.getElementById('featCard2TagInput')?.value.trim() || '海外ファン対応',
         card3Badge: document.getElementById('featCard3BadgeInput')?.value.trim() || 'EASY TO PLAY',
         card3En: document.getElementById('featCard3EnInput')?.value.trim() || 'DO-RE-MI NOTATION',
         card3Ja: document.getElementById('featCard3JaInput')?.value.trim() || 'ドレミ音階',
@@ -2399,52 +2401,53 @@
         card5Tag: document.getElementById('featCard5TagInput')?.value.trim() || '動画を見ながら練習できる',
         bannerPill: document.getElementById('featBannerPillInput')?.value.trim() || '5-IN-1 MULTI-SPECIFICATION',
         bannerTitle: document.getElementById('featBannerTitleInput')?.value.trim() || '観る・歌う・弾ける。',
-        bannerHighlight: document.getElementById('featBannerHighlightInput')?.value.trim() || 'すべての動画が「練習＆鑑賞」のマルチ仕様。',
+        bannerHighlight: document.getElementById('featBannerHighlightInput')?.value.trim() || 'すべての動画が「練習兼・鑑賞」のマルチ仕様。',
         bannerDesc: document.getElementById('featBannerDescInput')?.value.trim() || 'ピアノの演奏映像に、日本語歌詞・アルファベット歌詞・ドレミ・CDE・右手五線譜の5つの情報レイヤーを美しく統合。\nただ聴くだけでなく、弾きたい曲を自分のペースでマスターできる映像体験をお届けします。'
       };
 
-      // 02 MAIN COVERS テキスト情報の保存
-      const regInputVal = document.getElementById('regYoutubeUrlInput')?.value.trim();
+      // 02 MAIN COVERS セクションのテキスト情報の保存
+      const popRegYtInput = document.getElementById('regYoutubeUrlInput')?.value.trim();
       const regularInfo = {
         badge: document.getElementById('regSectionBadgeInput')?.value.trim() || 'FULL HARMONIC ARRANGEMENTS',
         title: document.getElementById('regSectionTitleInput')?.value.trim() || '02 / MAIN COVERS (ワンコーラス)',
-        youtubeUrl: regInputVal || '',
-        desc: document.getElementById('regSectionDescInput')?.value.trim() || 'じっくり聴かせる、原曲の魅力を凝縮したワンコーラス演奏。\nMelodic Depth & Dynamic Range — ピアノならではの豊かな響きを味わうメイン動画。'
+        youtubeUrl: (popRegYtInput && popRegYtInput !== 'https://youtube.com') ? popRegYtInput : '',
+        desc: document.getElementById('regSectionDescInput')?.value.trim() || 'YouTubeのチャンネルには「2週間に1回更新」と書いてはいますが、なんだかんだと忙しいため、実際はのんきに、気楽に、不定期で動画を投稿しています。サクッと楽しめるワンコーラス演奏をメインに、自分のペースでのんびりと更新を続けていきますので、どうぞ気楽にお楽しみください🥳🥳'
       };
 
-      // 03 SHORTS テキスト情報の保存
-      const shtInputVal = document.getElementById('shtYoutubeUrlInput')?.value.trim();
+      // 03 SHORTS セクションのテキスト情報の保存
+      const popShtYtInput = document.getElementById('shortsYoutubeUrlInput')?.value.trim();
       const shortsInfo = {
-        badge: document.getElementById('shtSectionBadgeInput')?.value.trim() || 'CHORUS HIGHLIGHTS IN 60s',
-        title: document.getElementById('shtSectionTitleInput')?.value.trim() || '03 / SHORTS (サビだけ弾いてみた)',
-        youtubeUrl: shtInputVal || '',
-        desc: document.getElementById('shtSectionDescInput')?.value.trim() || 'サビの爆発力を1分に凝縮した、疾走感あるショート動画。\nInstant Climax & Finger Speed — スマホに最適化された縦長ショート演奏。'
+        badge: document.getElementById('shortsSectionBadgeInput')?.value.trim() || '10-30s SHORT COVERS',
+        title: document.getElementById('shortsSectionTitleInput')?.value.trim() || '03/CHORUS SHORTS(サビだけ演奏)',
+        youtubeUrl: (popShtYtInput && popShtYtInput !== 'https://youtube.com') ? popShtYtInput : '',
+        desc: document.getElementById('shortsSectionDescInput')?.value.trim() || '10秒〜30秒でサビだけを気軽に聴ける、縦型ショート動画のエリアです。'
       };
 
       // 04 LAB APPS セクションのテキスト情報の保存
       const labInfo = {
-        badge: document.getElementById('labSectionBadgeInput')?.value.trim() || 'POWERED BY GOOGLE ANTIGRAVITY & AI',
-        title: document.getElementById('labSectionTitleInput')?.value.trim() || '04 / LAB APPS (開発アプリ)',
-        desc: document.getElementById('labSectionDescInput')?.value.trim() || 'Google Antigravity × AIが加速させる、次世代の音楽テクノロジー開発。\nこのWebサイトをはじめ、動画制作を革新するすべてのツールをAntigravity環境上で最速開発。',
-        heroBadge: document.getElementById('labHeroBadgeInput')?.value.trim() || 'NEXT-GEN DEVELOPMENT PIPELINE',
-        heroTitle: document.getElementById('labHeroTitleInput')?.value.trim() || 'すべては、',
-        heroHighlight: document.getElementById('labHeroHighlightInput')?.value.trim() || 'Google Antigravity × 最先端AI と共に。',
-        heroSubtitle: document.getElementById('labHeroSubtitleInput')?.value.trim() || '圧倒的なスピードで生み出される音楽プロダクト群。',
-        heroDesc: document.getElementById('labHeroDescInput')?.value.trim() || '当チャンネル「Music Tech Lab」のWebサイト自体はもちろん、動画内で活用しているビジュアライザーや歌詞同期アプリなど、すべてのプロダクトをGoogleが誇る次世代AI開発プラットフォーム「Google Antigravity」を活用して爆速構築しています。音楽と最先端テクノロジーの融合が、かつてない表現体験を切り拓きます。',
-        heroStat1Num: document.getElementById('labHeroStat1NumInput')?.value.trim() || 'AI-Native',
-        heroStat1Label: document.getElementById('labHeroStat1LabelInput')?.value.trim() || 'Google Antigravity Driven',
-        heroStat2Num: document.getElementById('labHeroStat2NumInput')?.value.trim() || 'Ultra Fast',
-        heroStat2Label: document.getElementById('labHeroStat2LabelInput')?.value.trim() || 'Rapid Iteration & Deploy',
-        heroStat3Num: document.getElementById('labHeroStat3NumInput')?.value.trim() || 'In The Lab',
-        heroStat3Label: document.getElementById('labHeroStat3LabelInput')?.value.trim() || 'Multiple AI Tools Under Dev',
-        card1Badge: document.getElementById('labCard1BadgeInput')?.value.trim() || 'VISUAL EFFECT TOOL',
-        card1En: document.getElementById('labCard1EnInput')?.value.trim() || 'Audio Visualizer',
-        card1Ja: document.getElementById('labCard1JaInput')?.value.trim() || 'オーディオビジュアライザー',
-        card1Status: document.getElementById('labCard1StatusInput')?.value.trim() || 'Active in Production',
-        card1Tag1: document.getElementById('labCard1Tag1Input')?.value.trim() || 'WebGL / Canvas',
-        card1Tag2: document.getElementById('labCard1Tag2Input')?.value.trim() || 'Realtime FFT',
-        card1Tag3: document.getElementById('labCard1Tag3Input')?.value.trim() || 'Antigravity Built',
-        card1Desc: document.getElementById('labCard1DescInput')?.value.trim() || '音楽の周波数波形や響きを美しくリアルタイム可視化するエフェクトツール。音の強弱に呼応するシネマティックな光彩パーティクルが、演奏動画の没入感を極限まで高めます。',
+        badge: document.getElementById('labSectionBadgeInput')?.value.trim() || 'ANTIGRAVITY APPS',
+        title: document.getElementById('labSectionTitleInput')?.value.trim() || '04/LAB APPS(自作ゲーム＆アプリ)',
+        desc: document.getElementById('labSectionDescInput')?.value.trim() || 'プログラム知識ゼロからAntiGravityとAIで構築。自作のピアノ音ゲーや、各種管理ツールなどの個人開発エリアです。',
+        heroBadge: document.getElementById('labHeroBadgeInput')?.value.trim() || 'INDIE APP WORKSHOP',
+        heroTitle: document.getElementById('labHeroTitleInput')?.value.trim() || '非エンジニアが',
+        heroHighlight: document.getElementById('labHeroHighlightInput')?.value.trim() || 'Gemini × AntiGravity で構築する',
+        heroSubtitle: document.getElementById('labHeroSubtitleInput')?.value.trim() || '自作のWebアプリ ＆ ゲーム開発ログ',
+        heroDesc: document.getElementById('labHeroDescInput')?.value.trim() || 'プログラム知識ゼロからツールを駆使して構築。中央に埋め込んだピアノ音ゲーをはじめ、日々の作業を効率化する各種管理アプリなどの制作物を公開しているエリアです。',
+        heroStat1Num: document.getElementById('labHeroStat1NumInput')?.value.trim() || '完全自作',
+        heroStat1Label: document.getElementById('labHeroStat1LabelInput')?.value.trim() || 'AntiGravity Powered',
+        heroStat2Num: document.getElementById('labHeroStat2NumInput')?.value.trim() || '知識ゼロから',
+        heroStat2Label: document.getElementById('labHeroStat2LabelInput')?.value.trim() || 'No-Code Development',
+        heroStat3Num: document.getElementById('labHeroStat3NumInput')?.value.trim() || '随時開発中',
+        heroStat3Label: document.getElementById('labHeroStat3LabelInput')?.value.trim() || 'Active Projects',
+        card1Badge: document.getElementById('labCard1BadgeInput')?.value.trim() || 'HTML5 GAMES',
+        card1En: document.getElementById('labCard1EnInput')?.value.trim() || 'LAB APPS STORAGE',
+        card1Ja: document.getElementById('labCard1JaInput')?.value.trim() || 'ラボ開発アプリ・保管庫',
+        card1Status: document.getElementById('labCard1StatusInput')?.value.trim() || '● Active in Testing',
+        card1Tag1: document.getElementById('labCard1Tag1Input')?.value.trim() || 'HTML5 GAMES',
+        card1Tag2: document.getElementById('labCard1Tag2Input')?.value.trim() || 'PLUG & PLAY',
+        card1Tag3: document.getElementById('labCard1Tag3Input')?.value.trim() || 'AI EMPOWERED',
+        card1Desc: document.getElementById('labCard1DescInput')?.value.trim() || '現在は中央に自作のゲームをフル画面で稼働させています。このエリアの埋め込みアプリは固定ではなく、日々の制作進捗や気分に合わせて、自作の別ゲームや実用的な各種管理ツールなどへ不定期にちょこちょこと入れ替え・更新を行っていく実験室（ラボ）スペースです。',
+        card1GamePath: document.getElementById('labCard1GamePathInput')?.value.trim() || 'games/index.html',
         card2Badge: document.getElementById('labCard2BadgeInput')?.value.trim() || 'KARAOKE SYNC SYSTEM',
         card2En: document.getElementById('labCard2EnInput')?.value.trim() || 'Lrc Sync App',
         card2Ja: document.getElementById('labCard2JaInput')?.value.trim() || '同期型カラオケ歌詞アプリ',
@@ -2453,6 +2456,7 @@
         card2Tag2: document.getElementById('labCard2Tag2Input')?.value.trim() || 'Smooth Color Flow',
         card2Tag3: document.getElementById('labCard2Tag3Input')?.value.trim() || 'Antigravity Built',
         card2Desc: document.getElementById('labCard2DescInput')?.value.trim() || 'スペースキーを曲に合わせてトントンと叩くだけで歌詞のタイムスタンプを直感的に記憶。カラオケのように歌詞の色が滑らかに変化する動画用テロップを即座に出力する次世代システム。',
+        card2GamePath: document.getElementById('labCard2GamePathInput')?.value.trim() || '',
         card3Badge: document.getElementById('labCard3BadgeInput')?.value.trim() || 'REACTIVE 2D/3D ANIMATION',
         card3En: document.getElementById('labCard3EnInput')?.value.trim() || 'Sonic Avatars',
         card3Ja: document.getElementById('labCard3JaInput')?.value.trim() || '音波連動キャラクター',
@@ -2461,6 +2465,7 @@
         card3Tag2: document.getElementById('labCard3Tag2Input')?.value.trim() || 'Animal Avatars',
         card3Tag3: document.getElementById('labCard3Tag3Input')?.value.trim() || 'Antigravity Built',
         card3Desc: document.getElementById('labCard3DescInput')?.value.trim() || '音楽のビートやアタック音に合わせて、リアルタイムにリズミカルに踊り出す犬、猫、ウサギなどの愛らしい動物キャラクター群。動画画面を賑やかに彩るインタラクティブ演出。',
+        card3GamePath: document.getElementById('labCard3GamePathInput')?.value.trim() || '',
         card4Badge: document.getElementById('labCard4BadgeInput')?.value.trim() || 'FUTURE ECOSYSTEM',
         card4En: document.getElementById('labCard4EnInput')?.value.trim() || 'Music AI Ecosystem',
         card4Ja: document.getElementById('labCard4JaInput')?.value.trim() || '次世代音楽AIツール群',
@@ -2473,20 +2478,20 @@
 
       // 05 STORE テキスト情報の保存
       const storeInfo = {
-        sectionDesc: document.getElementById('storeSectionDescInput')?.value.trim() || '動画で使用しているオリジナルピアノ楽譜をPiascore（ピアスコア）にて好評配信中。\n購入後すぐにPDFでダウンロード＆印刷可能です。',
+        sectionDesc: document.getElementById('storeSectionDescInput')?.value.trim() || '演奏動画の通りにそのまま弾ける、完全再現のオリジナルアレンジ楽譜です。Piascoreの公式ストアから、いつでも実際のYouTube動画をサクッと確認できます。国内最大級の安心できるシステムから、PDFでいつでもすぐにダウンロードして手元で印刷可能です。',
         bannerTitle: document.getElementById('storeBannerTitleInput')?.value.trim() || '動画を見ながら一緒に弾ける。',
-        bannerHighlight: document.getElementById('storeBannerHighlightInput')?.value.trim() || '公式オリジナルピアノ楽譜。',
-        bannerDesc: document.getElementById('storeBannerDescInput')?.value.trim() || '当チャンネルの動画内で演奏しているアレンジをそのまま完全再現したオリジナルピアノ楽譜です。国内最大級の楽譜配信プラットフォーム「Piascore」にて安全に即時ダウンロードいただけます。',
-        publisherUrl: document.getElementById('storePublisherUrlInput')?.value.trim() || '',
-        guideDesc: document.getElementById('storeGuideDescInput')?.value.trim() || 'Piascoreで購入いただいた楽譜は、iPad・iPhone・Android・パソコンですぐに閲覧・印刷いただけます。Piascoreアプリの自動譜めくり機能や書き込み機能にも完全対応しています。'
+        bannerHighlight: document.getElementById('storeBannerHighlightInput')?.value.trim() || '公式オリジナルピアノ楽譜',
+        bannerDesc: document.getElementById('storeBannerDescInput')?.value.trim() || 'サブチャンネルの演奏動画と100%連動した、完全再現のオリジナルピアノ楽譜です。\nPiascoreの公式ストア（各楽譜ページ）からいつでも参考動画（YouTube）を直接確認・再生できます。\n国内最大級の楽譜配信プラットフォームにて、安全にPDFを即時ダウンロードしてすぐに印刷可能です。',
+        publisherUrl: document.getElementById('storePublisherUrlInput')?.value.trim() || 'https://store.piascore.com/publishers/10366',
+        guideDesc: document.getElementById('storeGuideDescInput')?.value.trim() || 'Piascoreで購入いただいた楽譜は、iPad・iPhone・Android・パソコンですぐに閲覧・印刷いただけます。'
       };
 
       // 06 FOOTER エリアのテキスト情報の保存
       const footerInfo = {
-        title: document.getElementById('footerChannelTitleInput')?.value.trim() || 'MUSIC TECH LAB',
-        logoTag: document.getElementById('footerLogoTagInput')?.value.trim() || '最新アニソン&ゲーム音楽・ピアノCH',
-        motto: document.getElementById('footerMottoInput')?.value.trim() || 'Latest Anime & Game Music Meets Modern Piano Resonance.',
-        copyright: document.getElementById('footerCopyrightInput')?.value.trim() || '© 2025 MUSIC TECH LAB 【最新アニソン&ゲーム音楽・ピアノCH】. All Rights Reserved.',
+        title: document.getElementById('footerChannelTitleInput')?.value.trim() || '【公式楽譜ストア】MUSIC TECH LAB',
+        logoTag: document.getElementById('footerLogoTagInput')?.value.trim() || 'アニソンピアノ ＆ AIアプリ開発',
+        motto: document.getElementById('footerMottoInput')?.value.trim() || 'アニソンピアノ演奏 ＆ 最先端AIアプリ開発',
+        copyright: document.getElementById('footerCopyrightInput')?.value.trim() || '© 2026 【公式楽譜ストア】MUSIC TECH LAB アニソンピアノ ＆ AIアプリ開発 All Rights Reserved.',
         designedBy: document.getElementById('footerDesignedByInput')?.value.trim() || 'Crafted for Cinematic Music Experiences'
       };
 
@@ -2503,7 +2508,14 @@
       state.sheets = state.sheets.map(s => ({ ...s, titleColor: s.titleColor || '#ffffff' }));
       localStorage.setItem('piano_cinema_custom_sheets', JSON.stringify(state.sheets));
 
-      // リアルタイム完全同期パッチ（ポート8888へ即時送信）
+      const statusMsg = document.getElementById('saveStatusMsg');
+      const dot = document.querySelector('.save-status-text .status-dot');
+      if (statusMsg) {
+        statusMsg.textContent = '🔄 サーバーへ保存中...';
+        statusMsg.style.color = '#d4af37';
+      }
+
+      // 全最新データを集約した同期ペイロード
       const syncPayload = {
         piano_cinema_custom_header_info: headerInfo,
         piano_cinema_custom_hero_info: heroInfo,
@@ -2518,30 +2530,65 @@
         piano_cinema_custom_sheets: state.sheets
       };
 
-      const sendSyncPayload = async () => {
-        const endpoints = [
-          getSyncApiUrl('/api/sync'),
-          'http://127.0.0.1:8888/api/sync',
-          'http://localhost:8888/api/sync'
-        ];
-        for (const ep of endpoints) {
-          try {
-            const res = await fetch(ep, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(syncPayload)
-            });
-            if (res.ok) {
-              console.log('[Admin Sync] Server port 8888 synced successfully via', ep, 'at:', new Date().toLocaleTimeString());
-              break;
-            }
-          } catch (e) {}
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && !syncPayload[k]) {
+          if (k.startsWith('piano_cinema_') || k.startsWith('piano_device_lock_')) {
+            const rawVal = localStorage.getItem(k);
+            try { syncPayload[k] = JSON.parse(rawVal); } catch(e) { syncPayload[k] = rawVal; }
+          }
         }
-      };
-      sendSyncPayload();
+      }
 
-      document.getElementById('saveStatusMsg').textContent = '✅ 保存完了：表側サイトに即時反映されました！ (' + new Date().toLocaleTimeString() + ')';
-      showToast('サイトを更新しました！表側サイトで最新データが確認できます。');
+      const endpoints = [
+        'http://127.0.0.1:8888/api/sync',
+        'http://localhost:8888/api/sync',
+        getSyncApiUrl('/api/sync')
+      ];
+
+      let isSaved = false;
+      for (const ep of endpoints) {
+        try {
+          const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+          const timer = controller ? setTimeout(() => controller.abort(), 3000) : null;
+          const res = await fetch(ep, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(syncPayload),
+            ...(controller ? { signal: controller.signal } : {})
+          });
+          if (timer) clearTimeout(timer);
+          if (res.ok) {
+            isSaved = true;
+            console.log('[Admin Sync] Server port 8888 synced successfully via', ep);
+            break;
+          }
+        } catch (e) {}
+      }
+
+      if (isSaved) {
+        if (statusMsg) {
+          statusMsg.textContent = 'PC内のファイル（sync-data.json）へ保存完了！';
+          statusMsg.style.color = '#41c9b4';
+          statusMsg.style.fontWeight = 'bold';
+        }
+        if (dot) {
+          dot.style.background = '#41c9b4';
+          dot.style.boxShadow = '0 0 10px #41c9b4';
+        }
+        showToast('PC内のファイル（sync-data.json）へ保存完了！', 'success');
+      } else {
+        if (statusMsg) {
+          statusMsg.textContent = '保存失敗：サーバーが停止しています';
+          statusMsg.style.color = '#ff4d4d';
+          statusMsg.style.fontWeight = 'bold';
+        }
+        if (dot) {
+          dot.style.background = '#ff4d4d';
+          dot.style.boxShadow = '0 0 10px #ff4d4d';
+        }
+        showToast('保存失敗：サーバーが停止しています', 'error');
+      }
     }
 
     function resetToDefault() {
@@ -2976,10 +3023,21 @@
 
     // Toast Utility
     let toastTimeout = null;
-    function showToast(msg) {
+    function showToast(msg, type = 'info') {
       const toast = document.getElementById('adminToast');
       const text = document.getElementById('toastText');
+      if (!toast || !text) return;
       text.textContent = msg;
+      if (type === 'error') {
+        toast.style.borderColor = '#ff4d4d';
+        toast.style.boxShadow = '0 8px 30px rgba(255, 77, 77, 0.35)';
+      } else if (type === 'success') {
+        toast.style.borderColor = '#41c9b4';
+        toast.style.boxShadow = '0 8px 30px rgba(65, 201, 180, 0.35)';
+      } else {
+        toast.style.borderColor = 'var(--gold-primary)';
+        toast.style.boxShadow = '0 8px 30px rgba(212, 175, 55, 0.35)';
+      }
       toast.classList.add('is-active');
       clearTimeout(toastTimeout);
       toastTimeout = setTimeout(() => {

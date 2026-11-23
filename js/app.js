@@ -232,27 +232,36 @@ class PianoCinemaApp {
    * サーバー（ポート8888）へ全データを即時送信して永続化（ローカル環境限定）
    */
   async syncToServer(extraData = {}) {
-    if (!this.isLocalServerEnvironment()) return;
-    try {
-      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      const timer = controller ? setTimeout(() => controller.abort(), 1500) : null;
-      const syncUrl = this.getSyncApiUrl('/api/sync');
-      const res = await fetch(syncUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(extraData),
-        ...(controller ? { signal: controller.signal } : {})
-      });
-      if (timer) clearTimeout(timer);
-      if (res.ok) {
-        const json = await res.json();
-        if (json && json.lastModified) {
-          this.lastSyncTimestamp = json.lastModified;
+    if (!this.isLocalServerEnvironment()) return false;
+    const endpoints = [
+      'http://127.0.0.1:8888/api/sync',
+      'http://localhost:8888/api/sync',
+      this.getSyncApiUrl('/api/sync')
+    ];
+    let success = false;
+    for (const url of endpoints) {
+      try {
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const timer = controller ? setTimeout(() => controller.abort(), 3000) : null;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(extraData),
+          ...(controller ? { signal: controller.signal } : {})
+        });
+        if (timer) clearTimeout(timer);
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.lastModified) {
+            this.lastSyncTimestamp = json.lastModified;
+          }
+          success = true;
+          console.log('[Sync Engine] Server port 8888 saved successfully via', url);
+          break;
         }
-      }
-    } catch (e) {
-      console.warn('[Sync Engine] Server port 8888 save skipped:', e);
+      } catch (err) {}
     }
+    return success;
   }
 
   /**
@@ -4115,7 +4124,14 @@ class PianoCinemaApp {
       piano_cinema_custom_channel_b: this.adminState.shortsVideos,
       piano_cinema_custom_sheets: this.adminState.sheets
     };
-    this.syncToServer(syncPayload);
+    const statusEl = document.getElementById('adminModalSaveStatus');
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.style.color = '#d4af37';
+      statusEl.textContent = '🔄 サーバーへ保存中...';
+    }
+
+    const saveSuccess = await this.syncToServer(syncPayload);
 
     // メインサイトのデータを再初期化 & 即時再描画
     this.youtubeService.initDemoData();
@@ -4131,11 +4147,27 @@ class PianoCinemaApp {
     this.loadRequest3Texts();
     this.updateAllRequest3Slots();
 
-    if (showNotification) {
-      this.showToast('✨ サイトを更新しました！メイン画面に即座に反映されました。');
-      setTimeout(() => {
-        this.closeAdminModal();
-      }, 1000);
+    if (saveSuccess) {
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#41c9b4';
+        statusEl.textContent = 'PC内のファイル（sync-data.json）へ保存完了！';
+      }
+      if (showNotification) {
+        this.showToast('PC内のファイル（sync-data.json）へ保存完了！', 'success');
+        setTimeout(() => {
+          this.closeAdminModal();
+        }, 1200);
+      }
+    } else {
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#ff4d4d';
+        statusEl.textContent = '保存失敗：サーバーが停止しています';
+      }
+      if (showNotification) {
+        this.showToast('保存失敗：サーバーが停止しています', 'error');
+      }
     }
   }
 
@@ -4202,9 +4234,19 @@ class PianoCinemaApp {
   /**
    * トースト通知の表示
    */
-  showToast(message) {
+  showToast(message, type = 'info') {
     if (!this.toastNotification || !this.toastMsg) return;
     this.toastMsg.textContent = message;
+    if (type === 'error') {
+      this.toastNotification.style.borderColor = '#ff4d4d';
+      this.toastNotification.style.boxShadow = '0 8px 30px rgba(255, 77, 77, 0.4)';
+    } else if (type === 'success') {
+      this.toastNotification.style.borderColor = '#41c9b4';
+      this.toastNotification.style.boxShadow = '0 8px 30px rgba(65, 201, 180, 0.4)';
+    } else {
+      this.toastNotification.style.borderColor = 'var(--gold-primary)';
+      this.toastNotification.style.boxShadow = '0 8px 30px rgba(212, 175, 55, 0.35)';
+    }
     this.toastNotification.classList.add('is-active');
 
     if (this.toastTimeout) clearTimeout(this.toastTimeout);
