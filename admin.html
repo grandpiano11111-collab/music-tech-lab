@@ -1828,27 +1828,104 @@
     // ------------------------------------------------------------------------
     const SYNC_PORT = 8888;
     function getSyncApiUrl(endpoint) {
-      const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
-      const hostname = window.location.hostname || 'localhost';
-      const port = window.location.port || SYNC_PORT;
+      const isFile = window.location.protocol === 'file:';
+      const protocol = isFile ? 'http:' : (window.location.protocol === 'https:' ? 'https:' : 'http:');
+      const hostname = isFile ? '127.0.0.1' : (window.location.hostname || 'localhost');
+      const port = isFile ? SYNC_PORT : (window.location.port || SYNC_PORT);
       return `${protocol}//${hostname}:${port}${endpoint}`;
     }
 
-    async function syncFromServerBeforeLoad() {
-      try {
-        const res = await fetch(getSyncApiUrl('/api/sync'));
-        if (res.ok) {
-          const json = await res.json();
-          if (json && json.success && json.data) {
-            for (const [key, value] of Object.entries(json.data)) {
-              if (value !== undefined && value !== null) {
-                localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
-              }
-            }
-          }
+    function collectCurrentBrowserData() {
+      const keys = [
+        'piano_cinema_custom_header_info',
+        'piano_cinema_custom_hero_info',
+        'piano_cinema_custom_features_info',
+        'piano_cinema_custom_regular_info',
+        'piano_cinema_custom_shorts_info',
+        'piano_cinema_custom_lab_info',
+        'piano_cinema_custom_store_info',
+        'piano_cinema_custom_profile_info',
+        'piano_cinema_custom_request_info',
+        'piano_cinema_custom_request2_info',
+        'piano_cinema_custom_request3_info',
+        'piano_cinema_custom_footer_info',
+        'piano_cinema_custom_channel_a',
+        'piano_cinema_custom_channel_b',
+        'piano_cinema_custom_sheets'
+      ];
+      const payload = {};
+      let count = 0;
+      for (const k of keys) {
+        const val = localStorage.getItem(k);
+        if (val !== null && val !== undefined) {
+          try { payload[k] = JSON.parse(val); } catch (e) { payload[k] = val; }
+          count++;
         }
-      } catch (e) {
-        console.warn('[Admin Sync] Server port 8888 fetch skipped (offline fallback):', e);
+      }
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('piano_device_lock_') || k.startsWith('piano_cinema_request_reset_ts_'))) {
+          const v = localStorage.getItem(k);
+          try { payload[k] = JSON.parse(v); } catch(e) { payload[k] = v; }
+        }
+      }
+      return { payload, count };
+    }
+
+    async function autoExportBrowserDataToDisk() {
+      const { payload, count } = collectCurrentBrowserData();
+      if (count === 0) return;
+
+      const endpoints = [
+        getSyncApiUrl('/api/sync'),
+        'http://127.0.0.1:8888/api/sync',
+        'http://localhost:8888/api/sync'
+      ];
+      for (const ep of endpoints) {
+        try {
+          await fetch(ep, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          console.log('[Admin Auto-Export] Successfully written browser data to sync-data.json via', ep);
+          break;
+        } catch (e) {}
+      }
+    }
+
+    async function syncFromServerBeforeLoad() {
+      const { count } = collectCurrentBrowserData();
+      if (count > 0) {
+        // 現在ブラウザに保持されている最新データを最優先でsync-data.jsonへ上書き書き出し
+        await autoExportBrowserDataToDisk();
+      } else {
+        // ブラウザ側が空の場合のみサーバーから復元
+        try {
+          const endpoints = [
+            getSyncApiUrl('/api/sync'),
+            'http://127.0.0.1:8888/api/sync',
+            'http://localhost:8888/api/sync'
+          ];
+          for (const ep of endpoints) {
+            try {
+              const res = await fetch(ep);
+              if (res.ok) {
+                const json = await res.json();
+                if (json && json.success && json.data) {
+                  for (const [key, value] of Object.entries(json.data)) {
+                    if (value !== undefined && value !== null) {
+                      localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+                    }
+                  }
+                  break;
+                }
+              }
+            } catch (err) {}
+          }
+        } catch (e) {
+          console.warn('[Admin Sync] Server port 8888 fetch skipped (offline fallback):', e);
+        }
       }
       loadState();
     }
@@ -2441,21 +2518,27 @@
         piano_cinema_custom_sheets: state.sheets
       };
 
-      try {
-        fetch(getSyncApiUrl('/api/sync'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(syncPayload)
-        }).then(r => r.json()).then(res => {
-          if (res && res.success) {
-            console.log('[Admin Sync] Server port 8888 synced successfully at:', new Date().toLocaleTimeString());
-          }
-        }).catch(err => {
-          console.warn('[Admin Sync] Server sync error:', err);
-        });
-      } catch (err) {
-        console.warn('[Admin Sync] Sync request failed:', err);
-      }
+      const sendSyncPayload = async () => {
+        const endpoints = [
+          getSyncApiUrl('/api/sync'),
+          'http://127.0.0.1:8888/api/sync',
+          'http://localhost:8888/api/sync'
+        ];
+        for (const ep of endpoints) {
+          try {
+            const res = await fetch(ep, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(syncPayload)
+            });
+            if (res.ok) {
+              console.log('[Admin Sync] Server port 8888 synced successfully via', ep, 'at:', new Date().toLocaleTimeString());
+              break;
+            }
+          } catch (e) {}
+        }
+      };
+      sendSyncPayload();
 
       document.getElementById('saveStatusMsg').textContent = '✅ 保存完了：表側サイトに即時反映されました！ (' + new Date().toLocaleTimeString() + ')';
       showToast('サイトを更新しました！表側サイトで最新データが確認できます。');

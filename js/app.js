@@ -72,9 +72,10 @@ class PianoCinemaApp {
   }
 
   getSyncApiUrl(endpoint) {
-    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
-    const hostname = window.location.hostname || 'localhost';
-    const port = window.location.port || this.syncPort || 8888;
+    const isFile = window.location.protocol === 'file:';
+    const protocol = isFile ? 'http:' : (window.location.protocol === 'https:' ? 'https:' : 'http:');
+    const hostname = isFile ? '127.0.0.1' : (window.location.hostname || 'localhost');
+    const port = isFile ? (this.syncPort || 8888) : (window.location.port || this.syncPort || 8888);
     return `${protocol}//${hostname}:${port}${endpoint}`;
   }
 
@@ -112,6 +113,52 @@ class PianoCinemaApp {
   async syncFromServer() {
     let syncedFromPort8888 = false;
     if (this.isLocalServerEnvironment()) {
+      // ローカル環境起動時：現在ブラウザに保持されている最新データを自動的にsync-data.jsonへ上書き書き出し
+      try {
+        const localKeys = [
+          'piano_cinema_custom_header_info',
+          'piano_cinema_custom_hero_info',
+          'piano_cinema_custom_features_info',
+          'piano_cinema_custom_regular_info',
+          'piano_cinema_custom_shorts_info',
+          'piano_cinema_custom_lab_info',
+          'piano_cinema_custom_store_info',
+          'piano_cinema_custom_profile_info',
+          'piano_cinema_custom_request_info',
+          'piano_cinema_custom_request2_info',
+          'piano_cinema_custom_request3_info',
+          'piano_cinema_custom_footer_info',
+          'piano_cinema_custom_channel_a',
+          'piano_cinema_custom_channel_b',
+          'piano_cinema_custom_sheets'
+        ];
+        const localPayload = {};
+        let localCount = 0;
+        for (const k of localKeys) {
+          const val = localStorage.getItem(k);
+          if (val !== null && val !== undefined) {
+            try { localPayload[k] = JSON.parse(val); } catch (e) { localPayload[k] = val; }
+            localCount++;
+          }
+        }
+        if (localCount > 0) {
+          const endpoints = [
+            this.getSyncApiUrl('/api/sync'),
+            'http://127.0.0.1:8888/api/sync',
+            'http://localhost:8888/api/sync'
+          ];
+          for (const ep of endpoints) {
+            try {
+              fetch(ep, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(localPayload)
+              }).catch(() => {});
+              break;
+            } catch (e) {}
+          }
+        }
+      } catch (e) {}
       try {
         const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
         const timer = controller ? setTimeout(() => controller.abort(), 1200) : null;

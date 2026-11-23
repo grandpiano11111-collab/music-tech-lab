@@ -20,28 +20,18 @@ const PORT = process.env.PORT || 8888; // 配信ポート番号: 8888
 const ROOT_DIR = path.resolve(__dirname);
 
 // =========================================================================
-// 🛡️ ISOLATED EXTERNAL VAULT (AI完全遮断・独立階層「データ保護金庫」直結ルート)
-// 「最高ウェブサイト」フォルダ外（C:\ウェブサイト外装\データ保護金庫\）に完全隔離し、
-// AIパッチや自動同期による旧データ巻き戻しを構造の根本から100%永久遮断
-// =========================================================================
-const ISOLATED_VAULT_DIR = path.resolve(ROOT_DIR, '..', 'データ保護金庫');
-const SYNC_DATA_FILE = path.join(ISOLATED_VAULT_DIR, 'sync-data.json');
-const SYNC_DATA_BACKUP_FILE = path.join(ISOLATED_VAULT_DIR, 'sync-data.backup.json');
-const SYNC_DATA_VAULT_FILE = path.join(ISOLATED_VAULT_DIR, 'sync-data.vault.json');
-
-// 旧フォルダ内の参照パス（初回起動時に万一独立金庫が未作成だった場合の初期吸い上げ用のみ）
-const LEGACY_SYNC_FILE = path.join(ROOT_DIR, 'sync-data.json');
-const LEGACY_VAULT_FILE = path.join(ROOT_DIR, 'data-vault', 'sync-data.vault.json');
-const LEGACY_BACKUP_FILE = path.join(ROOT_DIR, 'sync-data.backup.json');
-
-// =========================================================================
 // 🛡️ DATA INTEGRITY VAULT SHIELD (データ不可侵・絶対保護シールド)
-// クライアント様が管理パネルから入力・蓄積したデータを上書き・初期化・リセットから永久保護
+// 対象フォルダ（C:\ウェブサイト外装\最高ウェブサイト\）内部のみで安全に管理
 // =========================================================================
+const SYNC_DATA_FILE = path.join(ROOT_DIR, 'sync-data.json');
+const SYNC_DATA_BACKUP_FILE = path.join(ROOT_DIR, 'sync-data.backup.json');
+const DATA_VAULT_DIR = path.join(ROOT_DIR, 'data-vault');
+const SYNC_DATA_VAULT_FILE = path.join(DATA_VAULT_DIR, 'sync-data.vault.json');
+
 let syncLastModified = 0;
 try {
-  if (!fs.existsSync(ISOLATED_VAULT_DIR)) {
-    fs.mkdirSync(ISOLATED_VAULT_DIR, { recursive: true });
+  if (!fs.existsSync(DATA_VAULT_DIR)) {
+    fs.mkdirSync(DATA_VAULT_DIR, { recursive: true });
   }
 
   let hasValidMain = false;
@@ -52,25 +42,19 @@ try {
         JSON.parse(fs.readFileSync(SYNC_DATA_FILE, 'utf8'));
         hasValidMain = true;
         syncLastModified = stat.mtimeMs;
-        // 独立金庫内の正常データを二重バックアップ（backup & vault）および公開用sync-data.jsonに同期保護
-        fs.copyFileSync(SYNC_DATA_FILE, SYNC_DATA_BACKUP_FILE);
-        fs.copyFileSync(SYNC_DATA_FILE, SYNC_DATA_VAULT_FILE);
-        try { fs.copyFileSync(SYNC_DATA_FILE, LEGACY_SYNC_FILE); } catch (e) {}
-        try { fs.copyFileSync(SYNC_DATA_FILE, LEGACY_BACKUP_FILE); } catch (e) {}
-        try { fs.copyFileSync(SYNC_DATA_FILE, LEGACY_VAULT_FILE); } catch (e) {}
-        console.log('[Isolated Data Vault] Client data verified in C:\\ウェブサイト外装\\データ保護金庫\\sync-data.json');
+        // 対象フォルダ内の正常データを二重バックアップ（backup & vault）に同期保護
+        try { fs.copyFileSync(SYNC_DATA_FILE, SYNC_DATA_BACKUP_FILE); } catch (e) {}
+        try { fs.copyFileSync(SYNC_DATA_FILE, SYNC_DATA_VAULT_FILE); } catch (e) {}
+        console.log('[Data Vault] Client data verified in sync-data.json');
       } catch (e) {}
     }
   }
 
-  // 万一のメイン金庫ファイル欠損・破損時は独立金庫内バックアップ（または初回のみ旧ファイル）から即時完全復元
+  // 万一のメイン金庫ファイル欠損・破損時はフォルダ内バックアップから即時復元
   if (!hasValidMain) {
     const candidates = [
       SYNC_DATA_VAULT_FILE,
-      SYNC_DATA_BACKUP_FILE,
-      LEGACY_SYNC_FILE,
-      LEGACY_VAULT_FILE,
-      LEGACY_BACKUP_FILE
+      SYNC_DATA_BACKUP_FILE
     ];
     for (const candidate of candidates) {
       if (fs.existsSync(candidate)) {
@@ -82,7 +66,7 @@ try {
             fs.copyFileSync(candidate, SYNC_DATA_BACKUP_FILE);
             fs.copyFileSync(candidate, SYNC_DATA_VAULT_FILE);
             syncLastModified = Date.now();
-            console.log('[Isolated Data Vault] Main data safely initialized/restored into isolated vault.');
+            console.log('[Data Vault] Main data safely restored from internal backup.');
             break;
           }
         } catch (e) {}
@@ -165,9 +149,9 @@ let isMaintenanceMode = false;
 function isLocalhostRequest(req) {
   const remoteAddr = String((req.socket && req.socket.remoteAddress) || (req.connection && req.connection.remoteAddress) || '');
   const hostHeader = String(req.headers.host || '').split(':')[0].toLowerCase();
-  const isLoopbackIp = remoteAddr === '127.0.0.1' || remoteAddr === '::1' || remoteAddr === '::ffff:127.0.0.1';
-  const isLocalHostHeader = hostHeader === 'localhost' || hostHeader === '127.0.0.1' || hostHeader === '[::1]';
-  return isLoopbackIp && isLocalHostHeader;
+  const isLoopbackIp = remoteAddr === '127.0.0.1' || remoteAddr === '::1' || remoteAddr === '::ffff:127.0.0.1' || remoteAddr.endsWith('127.0.0.1');
+  const isLocalHostHeader = hostHeader === 'localhost' || hostHeader === '127.0.0.1' || hostHeader === '[::1]' || hostHeader === '';
+  return isLoopbackIp || isLocalHostHeader;
 }
 
 const MAINTENANCE_HTML = `<!DOCTYPE html>
@@ -475,9 +459,9 @@ const server = http.createServer((req, res) => {
             return;
           }
 
-          // 書き込み先（独立データ保護金庫）ディレクトリの存在保証
-          if (!fs.existsSync(ISOLATED_VAULT_DIR)) {
-            fs.mkdirSync(ISOLATED_VAULT_DIR, { recursive: true });
+          // 書き込み先（data-vault）ディレクトリの存在保証
+          if (!fs.existsSync(DATA_VAULT_DIR)) {
+            fs.mkdirSync(DATA_VAULT_DIR, { recursive: true });
           }
 
           let currentData = {};
@@ -487,14 +471,14 @@ const server = http.createServer((req, res) => {
             } catch (e) {}
           }
 
-          // 書き込み直前：既存の安全データを独立金庫内のバックアップに退避
+          // 書き込み直前：既存の安全データをバックアップに退避
           if (Object.keys(currentData).length > 0) {
             try {
               fs.writeFileSync(SYNC_DATA_BACKUP_FILE, JSON.stringify(currentData, null, 2), 'utf8');
             } catch (e) {}
           }
 
-          // Windows PC (localhost) 以外の外部・スマホ端末からは管理パネル設定キーの書き換えを完全遮断
+          // Windows PC (localhost) 以外の外部・スマホ端末からは管理パネル設定キーの書き換えを遮断
           if (!isLocalhostRequest(req)) {
             for (const key of Object.keys(incoming)) {
               if (key.startsWith('piano_cinema_custom_') || key.startsWith('piano_cinema_request_reset_ts_')) {
@@ -514,16 +498,10 @@ const server = http.createServer((req, res) => {
           const mergedData = Object.assign({}, currentData, incoming);
 
           const serialized = JSON.stringify(mergedData, null, 2);
-          // 独立階層「C:\ウェブサイト外装\データ保護金庫\」へ最優先でリアルタイム自動上書き保存
+          // 対象フォルダ（C:\ウェブサイト外装\最高ウェブサイト\）内の各ファイルへ最優先で上書き保存
           fs.writeFileSync(SYNC_DATA_FILE, serialized, 'utf8');
-          fs.writeFileSync(SYNC_DATA_BACKUP_FILE, serialized, 'utf8');
-          try {
-            fs.writeFileSync(SYNC_DATA_VAULT_FILE, serialized, 'utf8');
-          } catch (e) {}
-          // GitHub Pages公開用の直下 sync-data.json へも最新状態を自動ミラーリング
-          try { fs.writeFileSync(LEGACY_SYNC_FILE, serialized, 'utf8'); } catch (e) {}
-          try { fs.writeFileSync(LEGACY_BACKUP_FILE, serialized, 'utf8'); } catch (e) {}
-          try { fs.writeFileSync(LEGACY_VAULT_FILE, serialized, 'utf8'); } catch (e) {}
+          try { fs.writeFileSync(SYNC_DATA_BACKUP_FILE, serialized, 'utf8'); } catch (e) {}
+          try { fs.writeFileSync(SYNC_DATA_VAULT_FILE, serialized, 'utf8'); } catch (e) {}
 
           // 公開用 demo-data.js へも自動同期（GitHub Pages 静的フォールバック・完全反映）
           try {
@@ -537,7 +515,19 @@ const server = http.createServer((req, res) => {
               'const DEMO_DATA = {\n' +
               '  regularVideos: ' + JSON.stringify(mergedData.piano_cinema_custom_channel_a || [], null, 2) + ',\n\n' +
               '  shortsVideos: ' + JSON.stringify(mergedData.piano_cinema_custom_channel_b || [], null, 2) + ',\n\n' +
-              '  sheets: ' + JSON.stringify(mergedData.piano_cinema_custom_sheets || [], null, 2) + '\n' +
+              '  sheets: ' + JSON.stringify(mergedData.piano_cinema_custom_sheets || [], null, 2) + ',\n\n' +
+              '  customHeaderInfo: ' + JSON.stringify(mergedData.piano_cinema_custom_header_info || {}, null, 2) + ',\n\n' +
+              '  customHeroInfo: ' + JSON.stringify(mergedData.piano_cinema_custom_hero_info || {}, null, 2) + ',\n\n' +
+              '  customFeaturesInfo: ' + JSON.stringify(mergedData.piano_cinema_custom_features_info || {}, null, 2) + ',\n\n' +
+              '  customRegularInfo: ' + JSON.stringify(mergedData.piano_cinema_custom_regular_info || {}, null, 2) + ',\n\n' +
+              '  customShortsInfo: ' + JSON.stringify(mergedData.piano_cinema_custom_shorts_info || {}, null, 2) + ',\n\n' +
+              '  customLabInfo: ' + JSON.stringify(mergedData.piano_cinema_custom_lab_info || {}, null, 2) + ',\n\n' +
+              '  customStoreInfo: ' + JSON.stringify(mergedData.piano_cinema_custom_store_info || {}, null, 2) + ',\n\n' +
+              '  customProfileInfo: ' + JSON.stringify(mergedData.piano_cinema_custom_profile_info || {}, null, 2) + ',\n\n' +
+              '  customRequestInfo: ' + JSON.stringify(mergedData.piano_cinema_custom_request_info || {}, null, 2) + ',\n\n' +
+              '  customRequest2Info: ' + JSON.stringify(mergedData.piano_cinema_custom_request2_info || {}, null, 2) + ',\n\n' +
+              '  customRequest3Info: ' + JSON.stringify(mergedData.piano_cinema_custom_request3_info || {}, null, 2) + ',\n\n' +
+              '  customFooterInfo: ' + JSON.stringify(mergedData.piano_cinema_custom_footer_info || {}, null, 2) + '\n' +
               '};\n\n' +
               'if (typeof window !== \'undefined\') {\n' +
               '  window.DEMO_DATA = DEMO_DATA;\n' +

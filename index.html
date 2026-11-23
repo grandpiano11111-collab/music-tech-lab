@@ -3480,22 +3480,53 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/config.js?v=20261123v2"></script>
-  <script src="js/demo-data.js?v=20261123v2"></script>
-  <script src="js/sound-engine.js?v=20261123v2"></script>
-  <script src="js/youtube-service.js?v=20261123v2"></script>
-  <script src="js/animations.js?v=20261123v2"></script>
-  <script src="js/app.js?v=20261123v2"></script>
+  <script src="js/config.js?v=20261123v3"></script>
+  <script src="js/demo-data.js?v=20261123v3"></script>
+  <!-- 同期データ最速プレハイドレーション（GitHub Pages・全端末即時表示） -->
+  <script>
+    (function() {
+      try {
+        if (window.DEMO_DATA) {
+          const map = {
+            piano_cinema_custom_header_info: window.DEMO_DATA.customHeaderInfo,
+            piano_cinema_custom_hero_info: window.DEMO_DATA.customHeroInfo,
+            piano_cinema_custom_features_info: window.DEMO_DATA.customFeaturesInfo,
+            piano_cinema_custom_regular_info: window.DEMO_DATA.customRegularInfo,
+            piano_cinema_custom_shorts_info: window.DEMO_DATA.customShortsInfo,
+            piano_cinema_custom_lab_info: window.DEMO_DATA.customLabInfo,
+            piano_cinema_custom_store_info: window.DEMO_DATA.customStoreInfo,
+            piano_cinema_custom_profile_info: window.DEMO_DATA.customProfileInfo,
+            piano_cinema_custom_request_info: window.DEMO_DATA.customRequestInfo,
+            piano_cinema_custom_request2_info: window.DEMO_DATA.customRequest2Info,
+            piano_cinema_custom_request3_info: window.DEMO_DATA.customRequest3Info,
+            piano_cinema_custom_footer_info: window.DEMO_DATA.customFooterInfo,
+            piano_cinema_custom_channel_a: window.DEMO_DATA.regularVideos,
+            piano_cinema_custom_channel_b: window.DEMO_DATA.shortsVideos,
+            piano_cinema_custom_sheets: window.DEMO_DATA.sheets
+          };
+          for (const [k, v] of Object.entries(map)) {
+            if (v && (!localStorage.getItem(k) || window.location.protocol !== 'file:')) {
+              localStorage.setItem(k, JSON.stringify(v));
+            }
+          }
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <script src="js/sound-engine.js?v=20261123v3"></script>
+  <script src="js/youtube-service.js?v=20261123v3"></script>
+  <script src="js/animations.js?v=20261123v3"></script>
+  <script src="js/app.js?v=20261123v3"></script>
   <!-- 端末識別個別ロックシステム（相互不可侵シールド）パッチ合流 -->
-  <script src="js/vote-lock-patch.js?v=20261123v2"></script>
+  <script src="js/vote-lock-patch.js?v=20261123v3"></script>
   <!-- 管理者認証・ボタン完全隠蔽＆不正アクセス遮断セキュリティパッチ合流 -->
-  <script src="js/admin-shield-patch.js?v=20261123v2"></script>
+  <script src="js/admin-shield-patch.js?v=20261123v3"></script>
   <!-- ゲーム音声完全消音＆居残りBGM強制終了セキュリティシールド合流 -->
-  <script src="js/game-audio-shield.js?v=20261123v2"></script>
+  <script src="js/game-audio-shield.js?v=20261123v3"></script>
   <!-- 世界全端末リアルタイム数値完全連動・超軽量通信エンジン（CDN） -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/5.3.5/mqtt.min.js"></script>
   <!-- 世界全端末リアルタイム数値完全連動化システム（自動ドッキング） -->
-  <script src="js/global-realtime-sync.js?v=20261123v2"></script>
+  <script src="js/global-realtime-sync.js?v=20261123v3"></script>
 
   <!-- Mobile & iOS Safari Game Environment Optimization -->
   <script>

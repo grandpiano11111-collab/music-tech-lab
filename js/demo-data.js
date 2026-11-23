@@ -706,7 +706,235 @@ const DEMO_DATA = {
     ],
     "storeUrl": "https://store.piascore.com/publishers/10366"
   }
-]
+],
+
+  customHeaderInfo: {
+  "title": "【公式楽譜ストア】MUSIC TECH LAB",
+  "tag": "アニソンピアノ & AIアプリ開発"
+},
+
+  customHeroInfo: {
+  "title": "【公式楽譜ストア】　　　　　　　  MUSIC TECH LAB\nアニソンピアノ ＆ 　　　　　　　　　AIアプリ開発",
+  "tagline": "プログラミングコードを1ミリも書けない状態から、開発の相棒であるGemini（ジェミニ）と何回も相談を重ね、その設計図をGoogle AntiGravity（アンチグラビティ）に打ち込むことで、このWebサイトも4番メニューの自作ゲームもすべて二人三脚で構築しました。4番セクション【04 LAB APPS】にて実際に遊べますので、Windowsパソコンからぜひ気軽に体験してみてください！",
+  "metaTag": "OFFICIAL SHEET MUSIC STORE / ANIME & GAME PIANO ARCHIVE",
+  "metaSub": "ANIME & GAME MUSIC PIANO ARCHIVE",
+  "brandPill": "OFFICIAL PIANO ARCHIVE",
+  "statLabel1": "TOTAL TRACKS",
+  "statTotal": "EXPANDING TRACKS",
+  "statLabel2": "ARRANGEMENTS",
+  "statArrangements": "One-Chorus & Virtuoso",
+  "statLabel3": "POWERED BY ANTIGRAVITY",
+  "statAudio": "EXPERIMENTAL GAME"
+},
+
+  customFeaturesInfo: {
+  "badge": "MULTI-LAYERED VISUAL SPECIFICATIONS",
+  "title": "01 / FEATURES (動画のこだわり)",
+  "desc": "歌える・学べる・弾ける。すべての動画に施された5層のマルチ情報。\n初心者から海外ファンまで、見るだけで演奏が深まる究極の映像仕様。",
+  "card1Badge": "SING ALONG",
+  "card1En": "JAPANESE LYRICS",
+  "card1Ja": "日本語歌詞",
+  "card1Desc": "一緒に歌える、原曲のニュアンスや感情がダイレクトに伝わる洗練された日本語歌詞。",
+  "card1Tag": "ニュアンスが伝わる",
+  "card2Badge": "GLOBAL FANS",
+  "card2En": "ROMAJI / ENGLISH LYRICS",
+  "card2Ja": "アルファベット歌詞",
+  "card2Desc": "海外のファンも楽しめる英語・ローマ字歌詞。世界中どこからでも一緒に楽しめます。",
+  "card2Tag": "海外ファンも楽しめる",
+  "card3Badge": "EASY TO PLAY",
+  "card3En": "DO-RE-MI NOTATION",
+  "card3Ja": "ドレミ音階",
+  "card3Desc": "初心者でもパッと見てすぐに弾けるドレミの案内。鍵盤のどこを弾くか一目で分かります。",
+  "card3Tag": "初心者もすぐに弾ける",
+  "card4Badge": "CHORD & THEORY",
+  "card4En": "C-D-E NOTATION",
+  "card4Ja": "CDE音階",
+  "card4Desc": "コードや国際基準で学べるアルファベット音階。ポピュラー音楽の理論やコード学習に最適。",
+  "card4Tag": "国際基準で学べる",
+  "card5Badge": "PRACTICE COMPANION",
+  "card5En": "RIGHT-HAND SHEET MUSIC",
+  "card5Ja": "メロディ楽譜",
+  "card5Desc": "右手の五線譜がついているから、動画を見ながら一緒に練習できる親切な設計。",
+  "card5Tag": "動画を見ながら練習できる",
+  "bannerPill": "5-IN-1 MULTI-SPECIFICATION",
+  "bannerTitle": "観る・歌う・弾ける。",
+  "bannerHighlight": "すべての動画が「練習＆鑑賞」のマルチ仕様。",
+  "bannerDesc": "観る・歌う・弾ける。すべての動画が「練習＆鑑賞」のマルチ仕様。\n日本語歌詞・アルファベット歌詞・ドレミ・CDE・右手五線譜の5つを美しく統合。\n初期のシンプルな演奏から一歩ずつ改良を重ね、だんだんと動画がパワーアップしていく成長の軌跡を、ぜひチャンネル全体の動画と共にお楽しみください！"
+},
+
+  customRegularInfo: {
+  "badge": "FULL HARMONIC ARRANGEMENTS",
+  "title": "02 / MAIN COVERS (ワンコーラス)",
+  "youtubeUrl": "https://youtube.com/@playing_the_piano?si=e8MvdlnGeqiP_H95",
+  "desc": "YouTubeのチャンネルには「2週間に1回更新」と書いてはいますが、なんだかんだと忙しいため、実際はのんきに、気楽に、不定期で動画を投稿しています。サクッと楽しめるワンコーラス演奏をメインに、自分のペースでのんびりと更新を続けていきますので、どうぞ気楽にお楽しみください🥳🥳"
+},
+
+  customShortsInfo: {
+  "badge": "10-30s SHORT COVERS",
+  "title": "03/CHORUS SHORTS(サビだけ演奏)",
+  "youtubeUrl": "https://www.youtube.com/@Playing_the_piano/shorts",
+  "desc": "10秒〜30秒でサビだけを気軽に聴ける、縦型ショート動画のエリアです。"
+},
+
+  customLabInfo: {
+  "badge": "ANTIGRAVITY APPS",
+  "title": "04/LAB APPS(自作ゲーム＆アプリ)",
+  "desc": "プログラム知識ゼロからAntiGravityとAIで構築。自作のピアノ音ゲーや、各種管理ツールなどの個人開発エリアです。",
+  "heroBadge": "INDIE APP WORKSHOP",
+  "heroTitle": "非エンジニアが",
+  "heroHighlight": "Gemini × AntiGravity で構築する",
+  "heroSubtitle": "自作のWebアプリ ＆ ゲーム開発ログ",
+  "heroDesc": "プログラム知識ゼロからツールを駆使して構築。中央に埋め込んだピアノ音ゲーをはじめ、日々の作業を効率化する各種管理アプリなどの制作物を公開しているエリアです。",
+  "heroStat1Num": "完全自作",
+  "heroStat1Label": "AntiGravity Powered",
+  "heroStat2Num": "知識ゼロから",
+  "heroStat2Label": "No-Code Development",
+  "heroStat3Num": "随時開発中",
+  "heroStat3Label": "Active Projects",
+  "card1Badge": "HTML5 GAMES",
+  "card1En": "LAB APPS STORAGE",
+  "card1Ja": "ラボ開発アプリ・保管庫",
+  "card1Status": "● Active in Testing",
+  "card1Tag1": "HTML5 GAMES",
+  "card1Tag2": "PLUG & PLAY",
+  "card1Tag3": "AI EMPOWERED",
+  "card1Desc": "現在は中央に自作のゲームをフル画面で稼働させています。このエリアの埋め込みアプリは固定ではなく、日々の制作進捗や気分に合わせて、自作の別ゲームや実用的な各種管理ツールなどへ不定期にちょこちょこと入れ替え・更新を行っていく実験室（ラボ）スペースです。",
+  "card1GamePath": "games/index.html",
+  "card2Badge": "KARAOKE SYNC SYSTEM",
+  "card2En": "Lrc Sync App",
+  "card2Ja": "同期型カラオケ歌詞アプリ",
+  "card2Status": "Active in Production",
+  "card2Tag1": "Spacebar Rhythm Input",
+  "card2Tag2": "Smooth Color Flow",
+  "card2Tag3": "Antigravity Built",
+  "card2Desc": "スペースキーを曲に合わせてトントンと叩くだけで歌詞のタイムスタンプを直感的に記憶。カラオケのように歌詞の色が滑らかに変化する動画用テロップを即座に出力する次世代システム。",
+  "card2GamePath": "",
+  "card3Badge": "REACTIVE 2D/3D ANIMATION",
+  "card3En": "Sonic Avatars",
+  "card3Ja": "音波連動キャラクター",
+  "card3Status": "Active in Production",
+  "card3Tag1": "Beat Reactive",
+  "card3Tag2": "Animal Avatars",
+  "card3Tag3": "Antigravity Built",
+  "card3Desc": "音楽のビートやアタック音に合わせて、リアルタイムにリズミカルに踊り出す犬、猫、ウサギなどの愛らしい動物キャラクター群。動画画面を賑やかに彩るインタラクティブ演出。",
+  "card3GamePath": "",
+  "card4Badge": "FUTURE ECOSYSTEM",
+  "card4En": "Music AI Ecosystem",
+  "card4Ja": "次世代音楽AIツール群",
+  "card4Status": "In Active Development",
+  "card4Tag1": "AI Audio Gen",
+  "card4Tag2": "Harmonic Engine",
+  "card4Tag3": "In Active R&D",
+  "card4Desc": "自動楽譜認識・伴奏生成・音源分離など、多数の音楽AIツールをGoogle Antigravity上で現在鋭意開発中。テクノロジーで音楽表現の未来を拡張し続けます。",
+  "card4GamePath": ""
+},
+
+  customStoreInfo: {
+  "sectionDesc": "演奏動画の通りにそのまま弾ける、完全再現のオリジナルアレンジ楽譜です。Piascoreの公式ストアから、いつでも実際のYouTube動画をサクッと確認できます。国内最大級の安心できるシステムから、PDFでいつでもすぐにダウンロードして手元で印刷可能です。",
+  "bannerTitle": "動画を見ながら一緒に弾ける。",
+  "bannerHighlight": "公式オリジナルピアノ楽譜",
+  "bannerDesc": "サブチャンネルの演奏動画と100%連動した、完全再現のオリジナルピアノ楽譜です。\nPiascoreの公式ストア（各楽譜ページ）からいつでも参考動画（YouTube）を直接確認・再生できます。\n国内最大級の楽譜配信プラットフォームにて、安全にPDFを即時ダウンロードしてすぐに印刷可能です。",
+  "publisherUrl": "https://store.piascore.com/publishers/10366",
+  "guideDesc": "Piascoreで購入いただいた楽譜は、iPad・iPhone・Android・パソコンですぐに閲覧・印刷いただけます。"
+},
+
+  customProfileInfo: {
+  "topText": "プログラム知識ゼロの非エンジニアが、Google AntiGravityと最先端AIツールを駆使して構築・運営している個人開発の音楽ピアノチャンネルラボです。過去に大きな病と入院生活を経験しましたが、現在は医師の許可のもと100%完全に回復。何の制限もない万全の体で、未来へ向けて意欲的に新しい挑戦を続けています。",
+  "bottomText1": "過酷なリハビリを乗り越えて完全復活を遂げたからこそ、これからの人生を徹底的に楽しみ尽くすべく、エネルギー全開で活動中。サイト内の自作ピアノ音ゲーをはじめ、日々の作業を効率化する各種管理アプリなども、すべてAIと共にローカル環境上で驚くほどの熱意を持って設計・開発を行っています。",
+  "bottomText2": "YouTubeではサクッと聴けるショート動画をメインにのんびり更新中。この先30年、40年と、老衰を迎えるその日まで元気に活動を走り続けるスタンスです。大病を乗り越えたからこそ生み出せる、シンプルで快適、そして遊び心に溢れたシステムをどこまでも追求し続けます。"
+},
+
+  customRequestInfo: {
+  "mainTitle": "LAB AUDIENCE VOICE / ウェブサイト全体へのご要望アンケート",
+  "deadline": "【いつでも投票受付中】 共感する項目を1クリックで教えてください！",
+  "rule": "当サイトへお越しいただきありがとうございます。こちらは皆さんがウェブサイト全体に感じている「こうだったらいいな」「これが好き」というリアルな希望やスタンスを、フラットに集計しているエリアです。下にある12個の項目の中から、ご自身の思ったところを自由にクリックして教えていただけると幸いです！",
+  "note": "※こちらのアンケートには期限やカウントのリセットはありません。皆さんからの共感のクリックが増えれば増えるほど、日々の活動やのんびり更新していく大きな励み（やる気）に繋がります！",
+  "legendLeft": "[緑] 注目 / FOCUS\n[黄] 人気 / HOT\n[赤] 殿堂入り！ / TOP RANK",
+  "legendRight": "[緑] 注目 / FOCUS\n[黄] 人気 / HOT\n[赤] 殿堂入り！ / TOP RANK",
+  "goalCount": 100000,
+  "dailyLimit": 1,
+  "stepCount": 1,
+  "checkpoint1": 50000,
+  "checkpoint2": 80000,
+  "songs": [
+    "1990年以前の楽譜が欲しいなぁ😁",
+    "2000年から2010年の楽譜が欲しいなぁ😆",
+    "2010年〜2020年の楽譜が欲しいなぁ😅",
+    "1990年〜2000年の楽譜が欲しいなぁ😗",
+    "2020年以降の楽譜が欲しいなぁ😸",
+    "ピアノ連弾の楽譜欲しい🤗",
+    "もっとサイバー感が欲しい😤",
+    "ちょっとしたアニメーションがいいね👍😼",
+    "デザインいいね👍️🥳",
+    "かなりいいね👍",
+    "AIシンガーに歌わせてみたいなあ🎶",
+    "アニソン・ゲーム以外の楽譜も欲しいなあ😙"
+  ]
+},
+
+  customRequest2Info: {
+  "mainTitle": "NEXT SHEET MUSIC SURVEY / 次回作・候補曲アンケート",
+  "deadline": "【リクエスト期間】 不定期",
+  "rule": "投票があまり伸びない曲目は随時曲目を変更する予定です✨🎶あなたが「本当に欲しい！動画で見たい！」と思う曲を自由にクリックして教えてください。カウントが満タンに達した楽曲は、100%確実にPiascoreでの楽譜化・制作決定となります！SNS等での【拡散希望】みんなの1票で次の新曲を決定しちゃおう！",
+  "note": "皆さんからの共感のクリックが増えれば増えるほど、次なる制作（ネクストワン）への大きな励み（やる気）に繋がります！",
+  "legendLeft": "[緑] リクエスト受付中\n[黄] 楽譜化チャンス！\n[赤] 楽譜化まであと一息！",
+  "legendRight": "[緑] リクエスト受付中\n[黄] 楽譜化チャンス！\n[赤] 楽譜化まであと一息！",
+  "goalCount": 50,
+  "dailyLimit": 1,
+  "stepCount": 1,
+  "checkpoint1": 20,
+  "checkpoint2": 35,
+  "songs": [
+    "Unraveling Love 〜少しの勇気〜 ／ 倉木麻衣",
+    "But ノーラヴ ／ Rainy。",
+    "Heaven Knows ／ B'z",
+    "Poker Face ／ あみゅり",
+    "SLEEPLESS ／ B'z",
+    "SPARKLE ／ 大黒摩季",
+    "RAISE INSIGHT ／ WANDS",
+    "ANSWER ／ Only this time",
+    "真っ真っ暗なLip ／ WANDS",
+    "JUST BELIEVE YOU ／ all at once",
+    "ZEROからハジメテ ／ 倉木麻衣",
+    "薔薇色の人生 ／ 倉木麻衣"
+  ]
+},
+
+  customRequest3Info: {
+  "mainTitle": "GAME GENRE SURVEY / 次に遊んでみたい自作ゲーム調査",
+  "deadline": "【いつでも回答受付中】 興味のあるゲームジャンルを教えてください！",
+  "rule": "プログラム知識ゼロからAIと共に個人開発していくにあたり、皆さんが「こんなジャンルの自作ゲームを触ってみたい、遊んでみたい」と感じる好みをフラットに集計しているエリアです。下にある12個のゲームジャンルの中から、興味のあるものを自由にクリックして教えていただけると日々の開発スタンス the 参考になります！",
+  "note": "※こちらのアンケートに期限やリセットはありません。皆さんからのポチッとしたクリックが、のんびり新しいゲームを試作していく大きな励み（やる気）に繋がります！",
+  "legendLeft": "[緑] 注目 / INTEREST\n[黄] 期待 / HIGH EXPECT\n[赤] 大本命！ / MOST WANTED",
+  "legendRight": "[緑] 注目 / INTEREST\n[黄] 期待 / HIGH EXPECT\n[赤] 大本命！ / MOST WANTED",
+  "goalCount": 100000,
+  "dailyLimit": 1,
+  "stepCount": 1,
+  "checkpoint1": 50000,
+  "checkpoint2": 80000,
+  "songs": [
+    "タイピングゲーム",
+    "エンドレスラン",
+    "ブロック崩し",
+    "2Dドット絵レース",
+    "脳トレ・スピード計算",
+    "コマンド選択式レトロRPG",
+    "落ち物ブロックパズル",
+    "タップ連打ゲーム",
+    "リズムアクション音ゲー",
+    "2D横スクロール迷路",
+    "記憶力絵合わせ",
+    "反射神経測定ゲーム"
+  ]
+},
+
+  customFooterInfo: {
+  "title": "【公式楽譜ストア】MUSIC TECH LAB",
+  "logoTag": "アニソンピアノ ＆ AIアプリ開発",
+  "motto": "アニソンピアノ演奏 ＆ 最先端AIアプリ開発",
+  "copyright": "© 2026 【公式楽譜ストア】MUSIC TECH LAB アニソンピアノ ＆ AIアプリ開発 All Rights Reserved.",
+  "designedBy": "Crafted for Cinematic Music Experiences"
+}
 };
 
 if (typeof window !== 'undefined') {
