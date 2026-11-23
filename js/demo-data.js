@@ -587,6 +587,26 @@ const DEMO_DATA = {
 
   sheets: [
   {
+    "id": "custom_sheet_1795432543527",
+    "title": "華麗なるリベンジャー /                                                            Juice=Juice",
+    "titleColor": "#750edd",
+    "workTitle": "傷だらけ聖女より報復をこめて Season2",
+    "description": "アニメ『傷だらけ聖女より報復をこめて Season2』のオープニングテーマ、Juice=Juiceの「華麗なるリベンジャー」の2台4手ピアノ楽譜（OP Ver. ）です。\n難易度は初級〜中級\nページ数は6ページ\nアニメと同じサイズ・構成で演奏を楽しめるアレンジになっています。原曲の疾走感があってダンサブルでカッコいい世界観を、ぜひ2台ピアノでお楽しみください。",
+    "thumbnail": "https://s3-ap-northeast-1.amazonaws.com/image.piascore.com/store/coverimage/site_l/PLS090442.png",
+    "price": "390",
+    "currency": "¥",
+    "taxIncluded": true,
+    "tag": "HOT",
+    "tagType": "hot",
+    "specs": [
+      "右手五線譜",
+      "ドレミ付き",
+      "CDE表記",
+      "PDF即時DL"
+    ],
+    "storeUrl": "https://store.piascore.com/scores/472717"
+  },
+  {
     "id": "custom_sheet_1792254007088",
     "title": "オノガミ / メガテラ・ゼロ",
     "titleColor": "#c23838",
