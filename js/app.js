@@ -136,7 +136,36 @@ class PianoCinemaApp {
 
     if (!syncedFromPort8888 && window.location.protocol !== 'file:') {
       try {
-        const staticRes = await fetch(`./sync-data.json?t=${Date.now()}`, { cache: 'no-store' });
+        const resolveSyncUrl = () => {
+          try {
+            let base = window.location.href.split('?')[0].split('#')[0];
+            if (!base.endsWith('/')) {
+              const lastSlash = base.lastIndexOf('/');
+              if (lastSlash !== -1) {
+                const lastPart = base.substring(lastSlash + 1);
+                if (lastPart.includes('.')) {
+                  base = base.substring(0, lastSlash + 1);
+                } else {
+                  base = base + '/';
+                }
+              } else {
+                base = base + '/';
+              }
+            }
+            return new URL('sync-data.json', base).href;
+          } catch (err) {
+            return './sync-data.json';
+          }
+        };
+
+        const staticUrl = `${resolveSyncUrl()}?v=${Date.now()}`;
+        const staticRes = await fetch(staticUrl, {
+          cache: 'no-store',
+          headers: {
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache, no-store, must-revalidate'
+          }
+        });
         if (staticRes.ok) {
           const rawJson = await staticRes.json();
           const dataObj = (rawJson && rawJson.success && rawJson.data && typeof rawJson.data === 'object')

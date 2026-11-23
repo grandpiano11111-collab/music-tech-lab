@@ -9,6 +9,11 @@
   <title>最新アニソン&ゲーム音楽・ピアノCH 【Music Tech Lab】</title>
   <meta name="description" content="最新アニソン＆ゲーム音楽とピアノが織りなす、洗練された響き。YouTube Data API連携による高音質ピアノ演奏アーカイブ。">
 
+  <!-- Force Fresh Cache Control for Mobile / iPad -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
   <!-- Immediate Scroll Reset to Top -->
   <script>
     if ('scrollRestoration' in history) {
@@ -33,9 +38,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20261123v2">
   <!-- 3行のガッチャンココード -->
-  <link rel="stylesheet" href="css/arcade-style.css">
+  <link rel="stylesheet" href="css/arcade-style.css?v=20261123v2">
   <!-- 艶のある黒とネオン外枠、上部メニューの見た目をこの3行で本体に完全にドッキングする -->
 </head>
 <body class="is-loading">
@@ -87,8 +92,8 @@
           </svg>
         </span>
         <div class="logo-text-group">
-          <span class="logo-title" id="navChannelTitle">MUSIC TECH LAB</span>
-          <span class="logo-tag" id="navChannelTag">最新アニソン&ゲーム音楽・ピアノCH</span>
+          <span class="logo-title" id="navChannelTitle">【公式楽譜ストア】MUSIC TECH LAB</span>
+          <span class="logo-tag" id="navChannelTag">アニソンピアノ & AIアプリ開発</span>
         </div>
       </a>
 
@@ -158,27 +163,10 @@
           <div class="hero-brand-top">
             <span class="brand-pill" id="heroBrandPill"><i data-lucide="sparkles"></i> <span id="heroBrandPillText">OFFICIAL PIANO ARCHIVE</span></span>
           </div>
-          <h1 class="hero-title hero-title-fullname" id="heroMainTitle">
-            <span class="title-group-main">
-              <span class="title-segment segment-1">
-                <span class="text-white-glow">最新アニソン</span>
-                <span class="title-ampersand">＆</span>
-                <span class="text-white-glow">ゲーム音楽</span>
-              </span>
-              <span class="title-separator-dot">•</span>
-              <span class="title-segment segment-2">
-                <span class="gold-gradient-text text-piano-accent">ピアノCH</span>
-              </span>
-            </span>
-            <span class="title-group-brand">
-              <span class="brand-bracket">【</span>
-              <span class="brand-name-glow">Music Tech Lab</span>
-              <span class="brand-bracket">】</span>
-            </span>
-          </h1>
+          <h1 class="hero-title hero-title-fullname" id="heroMainTitle" style="white-space: pre-wrap;">【公式楽譜ストア】　　　　　　　  MUSIC TECH LAB
+アニソンピアノ ＆ 　　　　　　　　　AIアプリ開発</h1>
           <p class="hero-tagline" id="heroTagline">
-            88鍵が描き出す、原曲の熱量とシネマティックな音響美学。<br>
-            最新アニメ・ゲームの名曲を、初心者から愛好家まで楽しめるハイブリッド仕様でお届けします。
+            プログラミングコードを1ミリも書けない状態から、開発の相棒であるGemini（ジェミニ）と何回も相談を重ね、その設計図をGoogle AntiGravity（アンチグラビティ）に打ち込むことで、このWebサイトも4番メニューの自作ゲームもすべて二人三脚で構築しました。4番セクション【04 LAB APPS】にて実際に遊べますので、Windowsパソコンからぜひ気軽に体験してみてください！
           </p>
         </div>
 
@@ -1442,30 +1430,30 @@
           </div>
         </div>
 
-        <!-- Sheet Music Grid (3 Dummy Items for Piascore Sync Component) -->
+        <!-- Sheet Music Grid (Piascore Sync Component - Latest 3 Items) -->
         <div class="sheet-music-grid" id="sheetMusicGrid">
-          <!-- Item 1: 推しの子 ファタール -->
+          <!-- Item 1: オノガミ / メガテラ・ゼロ -->
           <div class="sheet-card" data-magnetic>
             <div class="sheet-thumb-box">
-              <img src="https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?q=80&w=800&auto=format&fit=crop" alt="ファタール ピアノ楽譜" class="sheet-thumb-img" loading="lazy">
+              <img src="https://s3-ap-northeast-1.amazonaws.com/image.piascore.com/store/coverimage/site_l/PLS090418.png" alt="オノガミ / メガテラ・ゼロ ピアノ楽譜" class="sheet-thumb-img" loading="lazy">
               <div class="sheet-badge-overlay">
                 <span class="sheet-tag-pill hot">HOT</span>
                 <span class="sheet-format-pill">PDF</span>
               </div>
             </div>
             <div class="sheet-card-body">
-              <span class="sheet-category">【推しの子】第2期 OP</span>
-              <h3 class="sheet-title" style="color: #ffffff; white-space: pre-wrap;">ファタール / GEMN</h3>
+              <span class="sheet-category">ドラゴンボール超　ビルス</span>
+              <h3 class="sheet-title" style="color: #c23838; white-space: pre-wrap;">オノガミ / メガテラ・ゼロ</h3>
               <p class="sheet-desc">
-                ダークで艶やかな旋律を完全再現。右手メロディ五線譜・ドレミ音階・CDEコード付きワンコーラス楽譜。
+                アニメ『ドラゴンボール超　ビルス』のオープニングテーマ、メガテラ・ゼロの「オノガミ」のピアノソロ楽譜です。<br>難易度は中級<br>ページ数は2ページ<br>原曲の持つ壮大でカッコいい世界観を、ぜひピアノソロでお楽しみください。
               </p>
               <div class="sheet-card-footer">
                 <div class="sheet-price">
                   <span class="price-currency">¥</span>
-                  <span class="price-val">440</span>
+                  <span class="price-val">220</span>
                   <span class="price-tax">(税込)</span>
                 </div>
-                <a href="https://piascore.com" target="_blank" rel="noopener noreferrer" class="btn-buy-piascore" data-magnetic>
+                <a href="https://store.piascore.com/scores/458160" target="_blank" rel="noopener noreferrer" class="btn-buy-piascore" data-magnetic>
                   <span>Piascoreで購入</span>
                   <i data-lucide="external-link"></i>
                 </a>
@@ -1473,28 +1461,28 @@
             </div>
           </div>
 
-          <!-- Item 2: 葬送のフリーレン 勇者 -->
+          <!-- Item 2: 完璧のペキ / ビッケブランカ -->
           <div class="sheet-card" data-magnetic>
             <div class="sheet-thumb-box">
-              <img src="https://images.unsplash.com/photo-1507838153414-b4b713384a76?q=80&w=800&auto=format&fit=crop" alt="勇者 ピアノ楽譜" class="sheet-thumb-img" loading="lazy">
+              <img src="https://s3-ap-northeast-1.amazonaws.com/image.piascore.com/store/coverimage/site_l/PLS090417.png" alt="完璧のペキ / ビッケブランカ ピアノ楽譜" class="sheet-thumb-img" loading="lazy">
               <div class="sheet-badge-overlay">
-                <span class="sheet-tag-pill popular">POPULAR</span>
+                <span class="sheet-tag-pill hot">HOT</span>
                 <span class="sheet-format-pill">PDF</span>
               </div>
             </div>
             <div class="sheet-card-body">
-              <span class="sheet-category">【葬送のフリーレン】OP</span>
-              <h3 class="sheet-title" style="color: #ffffff; white-space: pre-wrap;">勇者 / YOASOBI</h3>
+              <span class="sheet-category">完璧のペキ</span>
+              <h3 class="sheet-title" style="color: #1b80d8; white-space: pre-wrap;">完璧のペキ / ビッケブランカ</h3>
               <p class="sheet-desc">
-                壮大で疾走感あふれるアレンジ。初心者も弾きやすいドレミ案内付きワンコーラスピアノ楽譜。
+                アニメ『完璧のペキ』のオープニングテーマ、ビッケブランカの「完璧のペキ」のピアノソロ楽譜です。<br>難易度は中級<br>ページ数は2ページ<br>原曲の持つポップで力強い世界観を、ぜひピアノソロでお楽しみください。
               </p>
               <div class="sheet-card-footer">
                 <div class="sheet-price">
                   <span class="price-currency">¥</span>
-                  <span class="price-val">440</span>
+                  <span class="price-val">220</span>
                   <span class="price-tax">(税込)</span>
                 </div>
-                <a href="https://piascore.com" target="_blank" rel="noopener noreferrer" class="btn-buy-piascore" data-magnetic>
+                <a href="https://store.piascore.com/scores/457998" target="_blank" rel="noopener noreferrer" class="btn-buy-piascore" data-magnetic>
                   <span>Piascoreで購入</span>
                   <i data-lucide="external-link"></i>
                 </a>
@@ -1502,28 +1490,28 @@
             </div>
           </div>
 
-          <!-- Item 3: 原神 フォンテーヌテーマ -->
+          <!-- Item 3: 雲を抜け風下へ私だけ / ヨルシカ -->
           <div class="sheet-card" data-magnetic>
             <div class="sheet-thumb-box">
-              <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800&auto=format&fit=crop" alt="原神 フォンテーヌ ピアノ楽譜" class="sheet-thumb-img" loading="lazy">
+              <img src="https://s3-ap-northeast-1.amazonaws.com/image.piascore.com/store/coverimage/site_l/PLS090416.png" alt="雲を抜け風下へ私だけ / ヨルシカ ピアノ楽譜" class="sheet-thumb-img" loading="lazy">
               <div class="sheet-badge-overlay">
-                <span class="sheet-tag-pill game">GAME MUSIC</span>
+                <span class="sheet-tag-pill new">NEW</span>
                 <span class="sheet-format-pill">PDF</span>
               </div>
             </div>
             <div class="sheet-card-body">
-              <span class="sheet-category">【原神 / Genshin Impact】</span>
-              <h3 class="sheet-title" style="color: #ffffff; white-space: pre-wrap;">フォンテーヌ メインテーマ</h3>
+              <span class="sheet-category">雲を抜け風下へ私だけ</span>
+              <h3 class="sheet-title" style="color: #a878d6; white-space: pre-wrap;">雲を抜け風下へ私だけ /                                    ヨルシカ</h3>
               <p class="sheet-desc">
-                美しく優美な水上都市のワルツ。華麗なアルペジオとメロディを両立したソロピアノ楽譜。
+                ヨルシカの「雲を抜け風下へ私だけ」のピアノソロ楽譜です。<br>難易度は中級<br>ページ数は2ページ<br>原曲の持つ切なく美しい世界観を、ぜひピアノソロでお楽しみください。
               </p>
               <div class="sheet-card-footer">
                 <div class="sheet-price">
                   <span class="price-currency">¥</span>
-                  <span class="price-val">440</span>
+                  <span class="price-val">220</span>
                   <span class="price-tax">(税込)</span>
                 </div>
-                <a href="https://piascore.com" target="_blank" rel="noopener noreferrer" class="btn-buy-piascore" data-magnetic>
+                <a href="https://store.piascore.com/scores/457173" target="_blank" rel="noopener noreferrer" class="btn-buy-piascore" data-magnetic>
                   <span>Piascoreで購入</span>
                   <i data-lucide="external-link"></i>
                 </a>
@@ -3492,22 +3480,22 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/config.js"></script>
-  <script src="js/demo-data.js"></script>
-  <script src="js/sound-engine.js"></script>
-  <script src="js/youtube-service.js"></script>
-  <script src="js/animations.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/config.js?v=20261123v2"></script>
+  <script src="js/demo-data.js?v=20261123v2"></script>
+  <script src="js/sound-engine.js?v=20261123v2"></script>
+  <script src="js/youtube-service.js?v=20261123v2"></script>
+  <script src="js/animations.js?v=20261123v2"></script>
+  <script src="js/app.js?v=20261123v2"></script>
   <!-- 端末識別個別ロックシステム（相互不可侵シールド）パッチ合流 -->
-  <script src="js/vote-lock-patch.js"></script>
+  <script src="js/vote-lock-patch.js?v=20261123v2"></script>
   <!-- 管理者認証・ボタン完全隠蔽＆不正アクセス遮断セキュリティパッチ合流 -->
-  <script src="js/admin-shield-patch.js"></script>
+  <script src="js/admin-shield-patch.js?v=20261123v2"></script>
   <!-- ゲーム音声完全消音＆居残りBGM強制終了セキュリティシールド合流 -->
-  <script src="js/game-audio-shield.js"></script>
+  <script src="js/game-audio-shield.js?v=20261123v2"></script>
   <!-- 世界全端末リアルタイム数値完全連動・超軽量通信エンジン（CDN） -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/5.3.5/mqtt.min.js"></script>
   <!-- 世界全端末リアルタイム数値完全連動化システム（自動ドッキング） -->
-  <script src="js/global-realtime-sync.js"></script>
+  <script src="js/global-realtime-sync.js?v=20261123v2"></script>
 
   <!-- Mobile & iOS Safari Game Environment Optimization -->
   <script>

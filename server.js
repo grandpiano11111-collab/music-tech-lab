@@ -525,10 +525,33 @@ const server = http.createServer((req, res) => {
           try { fs.writeFileSync(LEGACY_BACKUP_FILE, serialized, 'utf8'); } catch (e) {}
           try { fs.writeFileSync(LEGACY_VAULT_FILE, serialized, 'utf8'); } catch (e) {}
 
+          // 公開用 demo-data.js へも自動同期（GitHub Pages 静的フォールバック・完全反映）
+          try {
+            const demoDataPath = path.join(ROOT_DIR, 'js', 'demo-data.js');
+            const demoDataContent = '/**\n' +
+              ' * ==========================================================================\n' +
+              ' *  MUSIC TECH LAB - DEMO DATA (ANIME & GAME MUSIC PIANO SHOWCASE)\n' +
+              ' * ==========================================================================\n' +
+              ' *  公開用初期データセット（sync-data.json 自動同期済み）\n' +
+              ' */\n\n' +
+              'const DEMO_DATA = {\n' +
+              '  regularVideos: ' + JSON.stringify(mergedData.piano_cinema_custom_channel_a || [], null, 2) + ',\n\n' +
+              '  shortsVideos: ' + JSON.stringify(mergedData.piano_cinema_custom_channel_b || [], null, 2) + ',\n\n' +
+              '  sheets: ' + JSON.stringify(mergedData.piano_cinema_custom_sheets || [], null, 2) + '\n' +
+              '};\n\n' +
+              'if (typeof window !== \'undefined\') {\n' +
+              '  window.DEMO_DATA = DEMO_DATA;\n' +
+              '}\n' +
+              'if (typeof module !== \'undefined\' && module.exports) {\n' +
+              '  module.exports = DEMO_DATA;\n' +
+              '}\n';
+            fs.writeFileSync(demoDataPath, demoDataContent, 'utf8');
+          } catch (e) {}
+
           // Windows PC管理パネルからの更新時、公開URL（GitHub Pages）へも裏側で自動プッシュ反映
           if (isLocalhostRequest(req)) {
             exec(
-              'git add sync-data.json sync-data.backup.json data-vault/sync-data.vault.json && git commit -m "Sync latest admin panel data" && git push origin main',
+              'git add sync-data.json sync-data.backup.json data-vault/sync-data.vault.json js/demo-data.js && git commit -m "Sync latest admin panel data" && git push origin main',
               { cwd: ROOT_DIR, windowsHide: true },
               () => {}
             );

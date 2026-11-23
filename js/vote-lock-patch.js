@@ -394,6 +394,7 @@
         : (window.location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|::1|\[::1\]|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/i.test(window.location.hostname || ''));
 
       let syncedFromPort8888 = false;
+      let syncedFromStaticJson = false;
       if (isLocalEnv) {
         try {
           const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
@@ -419,7 +420,37 @@
 
       if (!syncedFromPort8888 && window.location.protocol !== 'file:') {
         try {
-          const staticRes = await fetch(`./sync-data.json?t=${Date.now()}`, { cache: 'no-store' });
+          // GitHub Pages等の本番URL（末尾スラッシュの有無・サブディレクトリ）に対応した確実なURL解決
+          const resolveSyncUrl = () => {
+            try {
+              let base = window.location.href.split('?')[0].split('#')[0];
+              if (!base.endsWith('/')) {
+                const lastSlash = base.lastIndexOf('/');
+                if (lastSlash !== -1) {
+                  const lastPart = base.substring(lastSlash + 1);
+                  if (lastPart.includes('.')) {
+                    base = base.substring(0, lastSlash + 1);
+                  } else {
+                    base = base + '/';
+                  }
+                } else {
+                  base = base + '/';
+                }
+              }
+              return new URL('sync-data.json', base).href;
+            } catch (err) {
+              return './sync-data.json';
+            }
+          };
+
+          const staticUrl = `${resolveSyncUrl()}?v=${Date.now()}`;
+          const staticRes = await fetch(staticUrl, {
+            cache: 'no-store',
+            headers: {
+              'Pragma': 'no-cache',
+              'Cache-Control': 'no-cache, no-store, must-revalidate'
+            }
+          });
           if (staticRes.ok) {
             const rawJson = await staticRes.json();
             const dataObj = (rawJson && rawJson.success && rawJson.data && typeof rawJson.data === 'object')
@@ -427,10 +458,29 @@
               : rawJson;
             if (dataObj && typeof dataObj === 'object') {
               applyServerOrStaticData(dataObj, true);
+              syncedFromStaticJson = true;
             }
           }
         } catch (e) {
           console.warn('[Sync Engine] Static sync-data.json fetch skipped:', e);
+        }
+      }
+
+      // 静的sync-data.jsonまたはサーバーからの同期完了時、UIコンポーネントを最新状態で即座に再描画
+      if (syncedFromPort8888 || syncedFromStaticJson) {
+        try {
+          if (this.youtubeService && typeof this.youtubeService.initDemoData === 'function') {
+            this.youtubeService.initDemoData();
+          }
+          if (typeof this.loadSectionHeaders === 'function') this.loadSectionHeaders();
+          if (typeof this.loadStoreTexts === 'function') this.loadStoreTexts();
+          if (typeof this.loadSheetMusic === 'function') this.loadSheetMusic();
+          if (typeof this.loadProfileTexts === 'function') this.loadProfileTexts();
+          if (typeof this.loadRequestTexts === 'function') this.loadRequestTexts();
+          if (typeof this.loadRequest2Texts === 'function') this.loadRequest2Texts();
+          if (typeof this.loadRequest3Texts === 'function') this.loadRequest3Texts();
+        } catch (err) {
+          console.warn('[Sync Engine] Post-sync UI refresh non-fatal warning:', err);
         }
       }
     };
