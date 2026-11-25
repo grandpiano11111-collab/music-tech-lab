@@ -872,7 +872,7 @@ const DEMO_DATA = {
   "legendLeft": "[緑] 注目 / FOCUS\n[黄] 人気 / HOT\n[赤] 殿堂入り！ / TOP RANK",
   "legendRight": "[緑] 注目 / FOCUS\n[黄] 人気 / HOT\n[赤] 殿堂入り！ / TOP RANK",
   "goalCount": 100000,
-  "dailyLimit": 4,
+  "dailyLimit": 3,
   "stepCount": 1,
   "checkpoint1": 50000,
   "checkpoint2": 80000,
