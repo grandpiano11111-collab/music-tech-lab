@@ -945,7 +945,7 @@
     0,
     1,
     1,
-    0,
+    1,
     2
   ],
   "piano_cinema_request2_votes": [
@@ -981,13 +981,14 @@
   "piano_device_lock_dev_pc_win_muzvxvns_unh75mf_97mmgel": {
     "deviceId": "dev_pc_win_muzvxvns_unh75mf_97mmgel",
     "req1": [
-      1795600477638
+      1795600477638,
+      1795600478798
     ],
     "req2": [],
     "req3": [
       1795431798562
     ],
-    "lastUpdated": 1795600477638
+    "lastUpdated": 1795600478799
   },
   "piano_device_lock_dev_sp_mobile_muzvy3mj_d2i0glp_y3qh86l": {
     "deviceId": "dev_sp_mobile_muzvy3mj_d2i0glp_y3qh86l",
